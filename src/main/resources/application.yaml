@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bzrauthz
+    username: postgres
+    password: postgres
+  liquibase:
+    change-log: db/changelog/changelog-master.yaml
+  jpa:
+    show-sql: true
+  grpc:
+    server:
+      port: 9090
+      address: localhost
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9999/realms/bazar-realm
+
+logging:
+  level:
+    org:
+      bazar: debug
+      springframework:
+        security: debug
+

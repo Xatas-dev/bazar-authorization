@@ -1,0 +1,1 @@
+truncate table user_space_role;

@@ -1,0 +1,4 @@
+databaseChangeLog:
+  - include:
+      file: 20251231-00-0-create-user-space-role-table.sql
+      relativeToChangelogFile: true

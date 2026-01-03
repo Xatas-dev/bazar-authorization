@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package bazar.authorization.v1;
+
+option java_multiple_files = true;
+option java_package = "org.bazar.authorization.grpc";
+option java_outer_classname = "AuthorizationAdminProto";
+
+service AuthorizationAdminService {
+
+  rpc CreateSpace(CreateSpaceRequest)
+      returns (CreateSpaceResponse);
+
+  rpc AddUserToSpace(AddUserToSpaceRequest)
+      returns (AddUserToSpaceResponse);
+
+  rpc RemoveUserFromSpace(RemoveUserFromSpaceRequest)
+      returns (RemoveUserFromSpaceResponse);
+}
+
+message CreateSpaceRequest {
+  int64 space_id = 1;
+}
+
+message CreateSpaceResponse {
+  bool success = 1;
+}
+
+message AddUserToSpaceRequest {
+  string user_id = 1;
+  int64 space_id = 2;
+  string role = 3;
+}
+
+message AddUserToSpaceResponse {
+  bool success = 1;
+}
+
+message RemoveUserFromSpaceRequest {
+  string user_id = 1;
+  int64 space_id = 2;
+}
+
+message RemoveUserFromSpaceResponse {
+  bool success = 1;
+}

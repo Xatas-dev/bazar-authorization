@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package bazar.authorization.v1;
+
+option java_multiple_files = true;
+option java_package = "org.bazar.authorization.grpc";
+option java_outer_classname = "AuthorizationProto";
+
+service AuthorizationService {
+  rpc Authorize(AuthorizeRequest)
+      returns (AuthorizeResponse);
+}
+
+message AuthorizeRequest{
+  string kind = 1;
+  int64 resource_id = 2;
+  string action = 3;
+}
+
+message AuthorizeResponse{
+  bool allowed = 1;
+}

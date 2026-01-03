@@ -1,0 +1,15 @@
+apiVersion: api.cerbos.dev/v1
+resourcePolicy:
+  version: "default"
+  resource: "space"
+
+  rules:
+    - actions: ["access_chat", "access_storage", "add_user_to_space"]
+      effect: EFFECT_ALLOW
+      roles:
+        - CREATOR
+
+    - actions: ["access_chat", "access_storage"]
+      effect: EFFECT_ALLOW
+      roles:
+        - MEMBER
