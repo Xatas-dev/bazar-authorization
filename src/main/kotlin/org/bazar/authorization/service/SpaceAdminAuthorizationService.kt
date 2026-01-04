@@ -14,16 +14,23 @@ import org.bazar.authorization.utils.exceptions.ApiExceptions.INSUFFICIENT_PERMI
 import org.bazar.authorization.utils.extensions.toUuid
 import org.bazar.authorization.utils.extensions.validate
 import org.springframework.grpc.server.service.GrpcService
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
-import java.util.UUID
-import kotlin.coroutines.CoroutineContext
+import java.util.*
 
 @GrpcService
 class SpaceAdminAuthorizationService(
     private val userSpaceRoleService: UserSpaceRoleService,
     private val cerbosAccessService: CerbosAccessService
 ) : AuthorizationAdminServiceCoroutineImplBase() {
+
+    override suspend fun deleteSpace(request: DeleteSpaceRequest): DeleteSpaceResponse = request.let {
+        it.validate()
+        val authenticatedUserId = getUserIdFromSecurityContext()
+        if (!cerbosAccessService.checkAccess(authenticatedUserId, it.spaceId, AuthorizationAction.DELETE_SPACE.actionName))
+            throw ApiException(INSUFFICIENT_PERMISSIONS)
+        userSpaceRoleService.deleteAllFromSpace(spaceId = it.spaceId)
+        DeleteSpaceResponse.newBuilder().setSuccess(true).build()
+    }
 
     override suspend fun createSpace(request: CreateSpaceRequest): CreateSpaceResponse = request.let {
         it.validate()
@@ -38,7 +45,7 @@ class SpaceAdminAuthorizationService(
     override suspend fun addUserToSpace(request: AddUserToSpaceRequest): AddUserToSpaceResponse = request.let {
         it.validate()
         val authenticatedUserId = getUserIdFromSecurityContext()
-        if (cerbosAccessService.checkAccess(authenticatedUserId, it.spaceId, ADD_USER_TO_SPACE))
+        if (!cerbosAccessService.checkAccess(authenticatedUserId, it.spaceId, ADD_USER_TO_SPACE.actionName))
             throw ApiException(INSUFFICIENT_PERMISSIONS)
         userSpaceRoleService.saveOrUpdateRoleInSpace(
             userId = it.userId.toUuid(),
@@ -54,7 +61,7 @@ class SpaceAdminAuthorizationService(
         request.let {
             it.validate()
             val authenticatedUserId = getUserIdFromSecurityContext()
-            if (cerbosAccessService.checkAccess(authenticatedUserId, it.spaceId, REMOVE_USER_FROM_SPACE))
+            if (!cerbosAccessService.checkAccess(authenticatedUserId, it.spaceId, REMOVE_USER_FROM_SPACE.actionName))
                 throw ApiException(INSUFFICIENT_PERMISSIONS)
             userSpaceRoleService.removeUserFromSpace(
                 userId = it.userId.toUuid(),

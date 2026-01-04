@@ -4,12 +4,12 @@ resourcePolicy:
   resource: "space"
 
   rules:
-    - actions: ["access_chat", "access_storage", "add_user_to_space"]
+    - actions: ["access_chat", "access_storage", "add_user_to_space", "remove_user_from_space", "delete_space", "read_space"]
       effect: EFFECT_ALLOW
       roles:
         - CREATOR
 
-    - actions: ["access_chat", "access_storage"]
+    - actions: ["access_chat", "access_storage", "read_space"]
       effect: EFFECT_ALLOW
       roles:
         - MEMBER

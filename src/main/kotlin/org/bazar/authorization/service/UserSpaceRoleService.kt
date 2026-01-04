@@ -17,6 +17,10 @@ class UserSpaceRoleService(
     private val userSpaceRoleRepository: UserSpaceRoleRepository
 ) {
 
+    fun deleteAllFromSpace(spaceId: Long) {
+        userSpaceRoleRepository.deleteAllBySpaceId(spaceId)
+    }
+
     fun saveOrUpdateRoleInSpace(userId: UUID, spaceId: Long, role: Role) {
         userSpaceRoleRepository.save(
             UserSpaceRole(

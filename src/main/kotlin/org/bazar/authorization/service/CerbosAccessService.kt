@@ -18,14 +18,14 @@ class CerbosAccessService(
     private val userSpaceRoleService: UserSpaceRoleService
 ) {
 
-    fun checkAccess(userId: UUID, spaceId: Long, action: AuthorizationAction): Boolean {
+    fun checkAccess(userId: UUID, spaceId: Long, action: String): Boolean {
         val userRole = userSpaceRoleService.getUserRole(userId, spaceId)
         val result = cerbosClient.check(
             Principal.newInstance(userId.toString(), userRole.name),
             Resource.newInstance("space"),
-            action.actionName
+            action
         )
 
-        return result.isAllowed(action.actionName)
+        return result.isAllowed(action)
     }
 }

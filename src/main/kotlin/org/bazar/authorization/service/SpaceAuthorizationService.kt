@@ -35,7 +35,7 @@ class SpaceAuthorizationService(
             val authenticatedUserId = getUserIdFromSecurityContext()
             try {
                 userSpaceRoleService.getUserRole(authenticatedUserId, it.resourceId)
-                allowed = cerbosAccessService.checkAccess(authenticatedUserId, it.resourceId, it.action.toAuthorizationAction())
+                allowed = cerbosAccessService.checkAccess(authenticatedUserId, it.resourceId, it.action)
             }
             catch (ex: ApiException){
                 logger.warn { "Action ${it.action} for user $authenticatedUserId is not allowed due to ${ex.getFullErrorMessage()}" }

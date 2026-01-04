@@ -7,6 +7,7 @@ import io.grpc.StatusException
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST
 import io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN
+import io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND
 import io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED
 import org.springframework.grpc.server.exception.GrpcExceptionHandler
 import org.springframework.security.authentication.BadCredentialsException
@@ -26,6 +27,7 @@ class GrpcServiceExceptionHandler: GrpcExceptionHandler {
                 UNAUTHORIZED -> StatusException(Status.UNAUTHENTICATED.withDescription(exception.getFullErrorMessage()))
                 FORBIDDEN -> StatusException(Status.PERMISSION_DENIED.withDescription(exception.getFullErrorMessage()))
                 BAD_REQUEST -> StatusException(Status.INVALID_ARGUMENT.withDescription(exception.getFullErrorMessage()))
+                NOT_FOUND -> StatusException(Status.NOT_FOUND.withDescription(exception.getFullErrorMessage()))
                 else -> StatusException(Status.UNKNOWN.withDescription(exception.getFullErrorMessage()))
             }
         }
