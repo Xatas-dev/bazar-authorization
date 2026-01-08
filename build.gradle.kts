@@ -26,12 +26,13 @@ repositories {
 val mockitoAgent = configurations.create("mockitoAgent")
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
     // Mockito agent fix
     testImplementation("org.mockito:mockito-core:5.20.0")
     mockitoAgent("org.mockito:mockito-core:5.20.0") { isTransitive = false }
     //Observability
     implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     //gRPC
     implementation("io.grpc:grpc-services")
     implementation("io.grpc:grpc-kotlin-stub")

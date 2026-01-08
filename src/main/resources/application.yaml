@@ -22,3 +22,6 @@ logging:
   level:
     org:
       bazar: ${LOGGING_LEVEL}
+management:
+  server:
+    port: 9091

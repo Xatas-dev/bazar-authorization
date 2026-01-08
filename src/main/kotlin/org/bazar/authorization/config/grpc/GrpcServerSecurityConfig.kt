@@ -33,8 +33,7 @@ import org.springframework.security.oauth2.jwt.SupplierJwtDecoder
 @Import(AuthenticationConfiguration::class)
 class GrpcServerSecurityConfig(
     @Value($$"${spring.grpc.server.security.enabled:true}")
-    private val securityEnabled: Boolean,
-    private val properties: OAuth2ResourceServerProperties
+    private val securityEnabled: Boolean
 ) {
     private val logger: KLogger = KotlinLogging.logger { }
 
@@ -46,7 +45,7 @@ class GrpcServerSecurityConfig(
     @GlobalServerInterceptor
     @Throws(Exception::class)
     @ConditionalOnProperty("spring.grpc.server.security.enabled", havingValue = "true", matchIfMissing = true)
-    fun jwtSecurityFilterChain(
+    fun grpcFilterSecurityChain(
         grpc: GrpcSecurity
     ): AuthenticationProcessInterceptor {
         return grpc
@@ -68,7 +67,7 @@ class GrpcServerSecurityConfig(
     @Bean
     @ConditionalOnProperty("spring.grpc.server.security.enabled", havingValue = "true", matchIfMissing = true)
     fun blockingJwtDecoderByIssuerUri(
-        properties: OAuth2ResourceServerProperties // <--- Inject standard properties
+        properties: OAuth2ResourceServerProperties
     ): SupplierJwtDecoder {
         return SupplierJwtDecoder {
             val issuerUri = properties.jwt.issuerUri
