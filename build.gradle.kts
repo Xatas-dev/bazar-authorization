@@ -10,7 +10,7 @@ plugins {
 }
 val springGrpcVersion by extra("1.0.0")
 group = "org.bazar"
-version = "0.0.1-SNAPSHOT"
+version = "0.0.1"
 description = "bazar-authorization"
 
 java {
@@ -55,7 +55,7 @@ dependencies {
     testImplementation("org.testcontainers:postgresql:1.21.0")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    implementation("org.springframework.boot:spring-boot-data-jpa-test")
+    testImplementation("org.springframework.boot:spring-boot-data-jpa-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 }

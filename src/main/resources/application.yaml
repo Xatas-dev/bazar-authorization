@@ -1,26 +1,24 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/bzrauthz
-    username: postgres
-    password: postgres
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
   liquibase:
     change-log: db/changelog/changelog-master.yaml
-  jpa:
-    show-sql: true
   grpc:
     server:
-      port: 9090
-      address: localhost
+      port: ${GRPC_SERVER_PORT:9090}
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:9999/realms/bazar-realm
+          issuer-uri: ${KC_EXTERNAL_URL}/realms/${KC_REALM}
+          jwk-set-uri: ${KC_URL}/realms/${KC_REALM}/protocol/openid-connect/certs
+
+cerbos:
+  url: ${CERBOS_URL}
 
 logging:
   level:
     org:
-      bazar: debug
-      springframework:
-        security: debug
-
+      bazar: ${LOGGING_LEVEL}

@@ -1,0 +1,12 @@
+.gradle
+.idea
+.kotlin
+build
+.env
+.gitattributes
+.gitignore
+target
+.git
+Dockerfile
+README.md
+HELP.md

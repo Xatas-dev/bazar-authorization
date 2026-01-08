@@ -61,6 +61,8 @@ class SpaceAdminAuthorizationService(
         request.let {
             it.validate()
             val authenticatedUserId = getUserIdFromSecurityContext()
+            if (authenticatedUserId.toString() == it.userId)
+                throw ApiException(ApiExceptions.ILLEGAL_ARGUMENT)
             if (!cerbosAccessService.checkAccess(authenticatedUserId, it.spaceId, REMOVE_USER_FROM_SPACE.actionName))
                 throw ApiException(INSUFFICIENT_PERMISSIONS)
             userSpaceRoleService.removeUserFromSpace(

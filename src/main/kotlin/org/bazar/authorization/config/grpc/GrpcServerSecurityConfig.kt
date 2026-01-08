@@ -68,13 +68,12 @@ class GrpcServerSecurityConfig(
     @Bean
     @ConditionalOnProperty("spring.grpc.server.security.enabled", havingValue = "true", matchIfMissing = true)
     fun blockingJwtDecoderByIssuerUri(
-        customizers: ObjectProvider<JwkSetUriJwtDecoderBuilderCustomizer>
+        properties: OAuth2ResourceServerProperties // <--- Inject standard properties
     ): SupplierJwtDecoder {
         return SupplierJwtDecoder {
-            val issuerUri: String? = this.properties.jwt.issuerUri
-            val builder = NimbusJwtDecoder.withIssuerLocation(issuerUri)
-            customizers.orderedStream()
-                .forEach { customizer: JwkSetUriJwtDecoderBuilderCustomizer? -> customizer!!.customize(builder) }
+            val issuerUri = properties.jwt.issuerUri
+            val jwkSetUri = properties.jwt.jwkSetUri
+            val builder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
             val jwtDecoder = builder.build()
             jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(issuerUri))
             jwtDecoder
