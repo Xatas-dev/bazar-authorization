@@ -24,4 +24,4 @@ logging:
       bazar: ${LOGGING_LEVEL}
 management:
   server:
-    port: 9091
+    port: 8090
