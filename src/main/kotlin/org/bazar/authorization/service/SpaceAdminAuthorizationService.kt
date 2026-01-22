@@ -26,7 +26,12 @@ class SpaceAdminAuthorizationService(
     override suspend fun deleteSpace(request: DeleteSpaceRequest): DeleteSpaceResponse = request.let {
         it.validate()
         val authenticatedUserId = getUserIdFromSecurityContext()
-        if (!cerbosAccessService.checkAccess(authenticatedUserId, it.spaceId, AuthorizationAction.DELETE_SPACE.actionName))
+        if (!cerbosAccessService.checkAccess(
+                authenticatedUserId,
+                it.spaceId,
+                AuthorizationAction.DELETE_SPACE.actionName
+            )
+        )
             throw ApiException(INSUFFICIENT_PERMISSIONS)
         userSpaceRoleService.deleteAllFromSpace(spaceId = it.spaceId)
         DeleteSpaceResponse.newBuilder().setSuccess(true).build()
