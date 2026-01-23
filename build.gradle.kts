@@ -30,7 +30,6 @@ graalvmNative {
         buildArgs.add("--initialize-at-run-time=io.grpc.netty.shaded.io.netty.handler.ssl.BouncyCastleAlpnSslUtils")
         buildArgs.add("-H:+UnlockExperimentalVMOptions")
         buildArgs.add("-H:Preserve=package=liquibase.*")
-        buildArgs.add("-march=native")
     }
 }
 
