@@ -1,21 +1,35 @@
 import com.google.protobuf.gradle.id
 
+val nativeImageConfigPath = "$projectDir/src/main/resources/META-INF/native-image"
+val nativeImageAccessFilterConfigPath = "./src/test/resources/native/access-filter.json"
+
 plugins {
     kotlin("jvm") version "2.2.21"
     kotlin("plugin.spring") version "2.2.21"
-    id("org.springframework.boot") version "4.0.0"
+    id("org.springframework.boot") version "4.0.1"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.google.protobuf") version "0.9.5"
     kotlin("plugin.jpa") version "2.2.21"
+    id("org.graalvm.buildtools.native") version "0.11.1"
 }
 val springGrpcVersion by extra("1.0.0")
 group = "org.bazar"
-version = "1.0.0"
+version = "1.0.1"
 description = "bazar-authorization"
 
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+graalvmNative {
+    binaries.all {
+        buildArgs.add("--initialize-at-build-time=org.slf4j")
+        buildArgs.add("--initialize-at-build-time=ch.qos.logback")
+        buildArgs.add("--initialize-at-run-time=io.grpc.netty.shaded.io.netty.handler.ssl.BouncyCastleAlpnSslUtils")
+        buildArgs.add("-H:+UnlockExperimentalVMOptions")
+        buildArgs.add("-H:Preserve=package=liquibase.*")
     }
 }
 
@@ -73,6 +87,10 @@ kotlin {
     }
 }
 
+tasks.compileKotlin {
+    kotlinDaemonJvmArguments.add("-Xmx4096m")
+}
+
 protobuf {
     protoc {
         artifact = "com.google.protobuf:protoc"
@@ -107,5 +125,8 @@ allOpen {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-    jvmArgs("-javaagent:${mockitoAgent.asPath}", "-Xshare:off")
+    jvmArgs()
+    jvmArgs = listOf(
+        "-javaagent:${mockitoAgent.asPath}", "-Xshare:off"
+    )
 }
