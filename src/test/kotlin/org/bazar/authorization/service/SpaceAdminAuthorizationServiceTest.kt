@@ -52,6 +52,8 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
     fun addUserRoleToSpace_shouldThrowInsufficientPermissions() {
         //given
         val userToBeAdded = UUID.randomUUID()
+        val authenticatedUserId = jwtTestSupplier.userId
+        userSpaceRoleRepository.save(UserSpaceRole(UserSpaceRoleId(2L, authenticatedUserId), Role.MEMBER))
         //when
         val error = assertThrows<StatusRuntimeException> { adminStub.addUserToSpace(
             AddUserToSpaceRequest.newBuilder().setSpaceId(2L).setUserId(userToBeAdded.toString())
