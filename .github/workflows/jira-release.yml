@@ -2,7 +2,8 @@ name: Manual Jira Release
 
 on:
   workflow_dispatch:
-
+permissions:
+  contents: read
 jobs:
   release-to-jira:
     runs-on: ubuntu-latest
