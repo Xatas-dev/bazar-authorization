@@ -73,6 +73,10 @@ kotlin {
     }
 }
 
+tasks.compileKotlin {
+    kotlinDaemonJvmArguments.add("-Xmx4096m")
+}
+
 protobuf {
     protoc {
         artifact = "com.google.protobuf:protoc"
