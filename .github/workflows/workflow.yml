@@ -106,11 +106,3 @@ jobs:
 
           # Push with --force to update the remote tag
           git push origin -f "$TAG_NAME"
-
-      - name: Create release in Jira
-        uses: Medsien/release-to-jira@main
-        with:
-          jira_server: 'https://grinbog015.atlassian.net'
-          jira_project: 'BZR'
-          jira_user: 'grinbog015@gmail.com'
-          jira_token: '${{ secrets.JIRA_TOKEN }}'
