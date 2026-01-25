@@ -78,9 +78,9 @@ jobs:
         with:
           context: ${{ env.SERVICE_CONTEXT }}
           file: ${{ env.SERVICE_CONTEXT }}/Dockerfile
-          # LOGIC: Push only on release branches. Otherwise, just load/test.
-          push: ${{ startsWith(github.ref, 'refs/heads/release/') }}
-          load: ${{ !startsWith(github.ref, 'refs/heads/release/') }}
+          # LOGIC: Push only on master branches. Otherwise, just load/test.
+          push: ${{ startsWith(github.ref, 'refs/heads/master/') }}
+          load: ${{ !startsWith(github.ref, 'refs/heads/master/') }}
           tags: |
             ${{ env.IMAGE_NAME }}:${{ env.APP_VERSION }}
             ${{ env.IMAGE_NAME }}:latest
