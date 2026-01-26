@@ -3,14 +3,14 @@ import com.google.protobuf.gradle.id
 plugins {
     kotlin("jvm") version "2.2.21"
     kotlin("plugin.spring") version "2.2.21"
-    id("org.springframework.boot") version "4.0.0"
+    id("org.springframework.boot") version "4.0.1"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.google.protobuf") version "0.9.5"
     kotlin("plugin.jpa") version "2.2.21"
 }
 val springGrpcVersion by extra("1.0.0")
 group = "org.bazar"
-version = "1.0.0"
+version = "1.0.1"
 description = "bazar-authorization"
 
 java {
