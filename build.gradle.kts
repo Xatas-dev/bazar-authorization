@@ -93,6 +93,10 @@ allOpen {
     annotation("jakarta.persistence.Embeddable")
 }
 
+tasks.compileKotlin {
+    kotlinDaemonJvmArguments.add("-Xmx4096m")
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
     jvmArgs("-javaagent:${mockitoAgent.asPath}", "-Xshare:off")
