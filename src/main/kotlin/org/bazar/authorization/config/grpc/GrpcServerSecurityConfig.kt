@@ -16,8 +16,7 @@ import org.springframework.grpc.server.security.AuthenticationProcessInterceptor
 import org.springframework.grpc.server.security.GrpcSecurity
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
-import org.springframework.security.oauth2.jwt.JwtValidators
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
+import org.springframework.security.oauth2.jwt.JwtDecoders
 import org.springframework.security.oauth2.jwt.SupplierJwtDecoder
 
 @Configuration
@@ -62,12 +61,7 @@ class GrpcServerSecurityConfig(
         properties: OAuth2ResourceServerProperties
     ): SupplierJwtDecoder {
         return SupplierJwtDecoder {
-            val issuerUri = properties.jwt.issuerUri
-            val jwkSetUri = properties.jwt.jwkSetUri
-            val builder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
-            val jwtDecoder = builder.build()
-            jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(issuerUri))
-            jwtDecoder
+            JwtDecoders.fromIssuerLocation(properties.jwt.issuerUri)
         }
     }
 

@@ -1,5 +1,4 @@
 spring:
-
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/bzrauthz}
     username: ${DB_USER:postgres}
@@ -14,14 +13,17 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${KC_URL:localhost:9999}/realms/${KC_REALM:bazar-realm}
-
+  threads:
+    virtual:
+      enabled: true
 cerbos:
   url: ${CERBOS_URL:localhost:3093}
-
 logging:
   level:
     org:
       bazar: ${LOGGING_LEVEL:DEBUG}
+server:
+  port: 8090
 management:
   server:
     port: 8090
