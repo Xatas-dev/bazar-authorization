@@ -1,8 +1,8 @@
 import com.google.protobuf.gradle.id
 
 plugins {
-    kotlin("jvm") version "2.3.0"
-    kotlin("plugin.spring") version "2.3.0"
+    kotlin("jvm") version "2.2.21"
+    kotlin("plugin.spring") version "2.2.21"
     id("org.springframework.boot") version "4.0.0"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.google.protobuf") version "0.9.5"
@@ -14,7 +14,7 @@ description = "bazar-authorization"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 

@@ -24,3 +24,6 @@ logging:
       bazar: ${LOGGING_LEVEL:DEBUG}
 server:
   port: 8090
+management:
+  server:
+    port: 8090
