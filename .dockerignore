@@ -1,10 +1,11 @@
-.gradle
 .idea
+.gradle
 .kotlin
 build
 .env
 .gitattributes
 .gitignore
+.github
 target
 .git
 Dockerfile

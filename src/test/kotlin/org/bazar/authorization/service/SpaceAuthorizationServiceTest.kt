@@ -1,12 +1,10 @@
 package org.bazar.authorization.service
 
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.bazar.authorization.grpc.AuthorizeRequest
 import org.bazar.authorization.infrastructure.BaseGrpcTest
 import org.bazar.authorization.model.authz.enums.AuthorizationAction
 import org.bazar.authorization.persistence.entity.UserSpaceRole
-import org.bazar.authorization.persistence.entity.UserSpaceRoleId
 import org.bazar.authorization.persistence.entity.enums.Role.MEMBER
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -18,7 +16,7 @@ class SpaceAuthorizationServiceTest : BaseGrpcTest() {
     fun testAuthorize_shouldGrandAccess() {
         //given
         val authenticatedUserId = jwtTestSupplier.userId
-        userSpaceRoleRepository.save(UserSpaceRole(UserSpaceRoleId(1L, authenticatedUserId), MEMBER))
+        userSpaceRoleRepository.save(UserSpaceRole(1L, authenticatedUserId, MEMBER))
         //when
         val response = stub.authorize(
             AuthorizeRequest.newBuilder()
@@ -51,7 +49,7 @@ class SpaceAuthorizationServiceTest : BaseGrpcTest() {
     fun testAuthorize_shouldDenyAccessNotEnoughRole() {
         //given
         val authenticatedUserId = jwtTestSupplier.userId
-        userSpaceRoleRepository.save(UserSpaceRole(UserSpaceRoleId(1L, authenticatedUserId), MEMBER))
+        userSpaceRoleRepository.save(UserSpaceRole(1L, authenticatedUserId, MEMBER))
         //when
         val response = stub.authorize(
             AuthorizeRequest.newBuilder()
