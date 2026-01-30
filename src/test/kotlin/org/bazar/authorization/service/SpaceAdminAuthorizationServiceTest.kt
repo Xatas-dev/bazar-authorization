@@ -9,7 +9,6 @@ import org.bazar.authorization.grpc.CreateSpaceRequest
 import org.bazar.authorization.grpc.RemoveUserFromSpaceRequest
 import org.bazar.authorization.infrastructure.BaseGrpcTest
 import org.bazar.authorization.persistence.entity.UserSpaceRole
-import org.bazar.authorization.persistence.entity.UserSpaceRoleId
 import org.bazar.authorization.persistence.entity.enums.Role
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -20,7 +19,7 @@ import org.springframework.security.test.context.support.WithMockUser
 import java.util.*
 
 @WithMockUser
-class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
+class SpaceAdminAuthorizationServiceTest() : BaseGrpcTest() {
 
     @Test
     @DisplayName("Adding user to space should save user space role and return true")
@@ -28,7 +27,7 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
         //given
         val authenticatedUserId = jwtTestSupplier.userId
         val userToBeAdded = UUID.randomUUID()
-        userSpaceRoleRepository.save(UserSpaceRole(UserSpaceRoleId(2L, authenticatedUserId), Role.CREATOR))
+        userSpaceRoleRepository.save(UserSpaceRole(spaceId = 2L, authenticatedUserId, Role.CREATOR))
         //when
         val response = adminStub.addUserToSpace(
             AddUserToSpaceRequest.newBuilder().setSpaceId(2L).setUserId(userToBeAdded.toString())
@@ -38,10 +37,10 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
         val allUsers = userSpaceRoleRepository.findAll()
         assertThat(allUsers)
             .hasSize(2)
-            .extracting(UserSpaceRole::id, UserSpaceRole::role)
+            .extracting(UserSpaceRole::spaceId, UserSpaceRole::userId, UserSpaceRole::role)
             .containsExactlyInAnyOrder(
-                Tuple(UserSpaceRoleId(2L, authenticatedUserId), Role.CREATOR),
-                Tuple(UserSpaceRoleId(2L, userToBeAdded), Role.MEMBER)
+                Tuple(2L, authenticatedUserId, Role.CREATOR),
+                Tuple(2L, userToBeAdded, Role.MEMBER)
             )
 
         assertEquals(true, response.success)
@@ -52,10 +51,15 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
     fun addUserRoleToSpace_shouldThrowInsufficientPermissions() {
         //given
         val userToBeAdded = UUID.randomUUID()
+        val authenticatedUserId = jwtTestSupplier.userId
+        userSpaceRoleRepository.save(UserSpaceRole(2L, authenticatedUserId, Role.MEMBER))
         //when
-        val error = assertThrows<StatusRuntimeException> { adminStub.addUserToSpace(
-            AddUserToSpaceRequest.newBuilder().setSpaceId(2L).setUserId(userToBeAdded.toString())
-                .setRole(Role.MEMBER.name).build()) }
+        val error = assertThrows<StatusRuntimeException> {
+            adminStub.addUserToSpace(
+                AddUserToSpaceRequest.newBuilder().setSpaceId(2L).setUserId(userToBeAdded.toString())
+                    .setRole(Role.MEMBER.name).build()
+            )
+        }
         //then
         assertThat(error.status.code).isEqualTo(Status.PERMISSION_DENIED.code)
     }
@@ -74,8 +78,8 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
         //given
         val authenticatedUserId = jwtTestSupplier.userId
         val userToBeRemovedId = UUID.randomUUID()
-        userSpaceRoleRepository.save(UserSpaceRole(UserSpaceRoleId(1L, authenticatedUserId), Role.CREATOR))
-        userSpaceRoleRepository.save(UserSpaceRole(UserSpaceRoleId(1L, userToBeRemovedId), Role.MEMBER))
+        userSpaceRoleRepository.save(UserSpaceRole(1L, authenticatedUserId, Role.CREATOR))
+        userSpaceRoleRepository.save(UserSpaceRole(1L, userToBeRemovedId, Role.MEMBER))
         //when
         val response = adminStub.removeUserFromSpace(
             RemoveUserFromSpaceRequest.newBuilder()
@@ -108,9 +112,9 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
         val allRolesInDb = userSpaceRoleRepository.findAll()
         assertThat(allRolesInDb)
             .hasSize(1)
-            .extracting(UserSpaceRole::id, UserSpaceRole::role)
+            .extracting(UserSpaceRole::spaceId, UserSpaceRole::userId, UserSpaceRole::role)
             .containsExactlyInAnyOrder(
-                Tuple(UserSpaceRoleId(1L, authenticatedUserId), Role.CREATOR)
+                Tuple(1L, authenticatedUserId, Role.CREATOR)
             )
 
         assertEquals(true, response.success)
@@ -121,7 +125,7 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
     fun createSpace_shouldThrowIfCreatorExists() {
         //given
         val authenticatedUserId = jwtTestSupplier.userId
-        userSpaceRoleRepository.save(UserSpaceRole(UserSpaceRoleId(1L, authenticatedUserId), Role.CREATOR))
+        userSpaceRoleRepository.save(UserSpaceRole(1L, authenticatedUserId, Role.CREATOR))
         //when
         val error = assertThrows<StatusRuntimeException> {
             adminStub.createSpace(CreateSpaceRequest.newBuilder().setSpaceId(1L).build())

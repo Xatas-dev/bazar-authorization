@@ -1,9 +1,9 @@
 package org.bazar.authorization.service
 
-import jakarta.transaction.Transactional
+import io.grpc.stub.StreamObserver
 import org.bazar.authorization.config.grpc.interceptors.KotlinSecurityContextHolder
 import org.bazar.authorization.grpc.*
-import org.bazar.authorization.grpc.AuthorizationAdminServiceGrpcKt.AuthorizationAdminServiceCoroutineImplBase
+import org.bazar.authorization.grpc.AuthorizationAdminServiceGrpc.AuthorizationAdminServiceImplBase
 import org.bazar.authorization.model.authz.enums.AuthorizationAction
 import org.bazar.authorization.model.authz.enums.AuthorizationAction.ADD_USER_TO_SPACE
 import org.bazar.authorization.model.authz.enums.AuthorizationAction.REMOVE_USER_FROM_SPACE
@@ -15,62 +15,92 @@ import org.bazar.authorization.utils.extensions.toUuid
 import org.bazar.authorization.utils.extensions.validate
 import org.springframework.grpc.server.service.GrpcService
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
 @GrpcService
+@Transactional
 class SpaceAdminAuthorizationService(
     private val userSpaceRoleService: UserSpaceRoleService,
     private val cerbosAccessService: CerbosAccessService
-) : AuthorizationAdminServiceCoroutineImplBase() {
+) : AuthorizationAdminServiceImplBase() {
 
-    override suspend fun deleteSpace(request: DeleteSpaceRequest): DeleteSpaceResponse = request.let {
-        it.validate()
+    override fun deleteSpace(
+        request: DeleteSpaceRequest,
+        responseObserver: StreamObserver<DeleteSpaceResponse>
+    ) {
+        request.validate()
         val authenticatedUserId = getUserIdFromSecurityContext()
-        if (!cerbosAccessService.checkAccess(authenticatedUserId, it.spaceId, AuthorizationAction.DELETE_SPACE.actionName))
+        if (!cerbosAccessService.checkAccess(
+                authenticatedUserId,
+                request.spaceId,
+                AuthorizationAction.DELETE_SPACE.actionName
+            )
+        )
             throw ApiException(INSUFFICIENT_PERMISSIONS)
-        userSpaceRoleService.deleteAllFromSpace(spaceId = it.spaceId)
-        DeleteSpaceResponse.newBuilder().setSuccess(true).build()
+        userSpaceRoleService.deleteAllFromSpace(spaceId = request.spaceId)
+
+        responseObserver.onNext(
+            DeleteSpaceResponse.newBuilder().setSuccess(true).build()
+        )
     }
 
-    override suspend fun createSpace(request: CreateSpaceRequest): CreateSpaceResponse = request.let {
-        it.validate()
+    override fun createSpace(
+        request: CreateSpaceRequest,
+        responseObserver: StreamObserver<CreateSpaceResponse>
+    ) {
+        request.validate()
         userSpaceRoleService.createSpaceOwner(
             userId = getUserIdFromSecurityContext(),
-            spaceId = it.spaceId
+            spaceId = request.spaceId
         )
-        CreateSpaceResponse.newBuilder().setSuccess(true).build()
+        responseObserver.onNext(
+            CreateSpaceResponse.newBuilder().setSuccess(true).build()
+        )
+        responseObserver.onCompleted()
     }
 
-    @Transactional
-    override suspend fun addUserToSpace(request: AddUserToSpaceRequest): AddUserToSpaceResponse = request.let {
-        it.validate()
+    override fun addUserToSpace(
+        request: AddUserToSpaceRequest,
+        responseObserver: StreamObserver<AddUserToSpaceResponse>
+    ) {
+        request.validate()
         val authenticatedUserId = getUserIdFromSecurityContext()
-        if (!cerbosAccessService.checkAccess(authenticatedUserId, it.spaceId, ADD_USER_TO_SPACE.actionName))
+        if (!cerbosAccessService.checkAccess(authenticatedUserId, request.spaceId, ADD_USER_TO_SPACE.actionName))
             throw ApiException(INSUFFICIENT_PERMISSIONS)
         userSpaceRoleService.saveOrUpdateRoleInSpace(
-            userId = it.userId.toUuid(),
-            spaceId = it.spaceId,
-            role = Role.valueOf(it.role)
+            userId = request.userId.toUuid(),
+            spaceId = request.spaceId,
+            role = Role.valueOf(request.role)
         )
 
-        AddUserToSpaceResponse.newBuilder().setSuccess(true).build()
+        responseObserver.onNext(
+            AddUserToSpaceResponse.newBuilder().setSuccess(true).build()
+        )
+
+        responseObserver.onCompleted()
     }
 
-    @Transactional
-    override suspend fun removeUserFromSpace(request: RemoveUserFromSpaceRequest): RemoveUserFromSpaceResponse =
-        request.let {
-            it.validate()
-            val authenticatedUserId = getUserIdFromSecurityContext()
-            if (authenticatedUserId.toString() == it.userId)
-                throw ApiException(ApiExceptions.ILLEGAL_ARGUMENT)
-            if (!cerbosAccessService.checkAccess(authenticatedUserId, it.spaceId, REMOVE_USER_FROM_SPACE.actionName))
-                throw ApiException(INSUFFICIENT_PERMISSIONS)
-            userSpaceRoleService.removeUserFromSpace(
-                userId = it.userId.toUuid(),
-                spaceId = it.spaceId
-            )
+    override fun removeUserFromSpace(
+        request: RemoveUserFromSpaceRequest,
+        responseObserver: StreamObserver<RemoveUserFromSpaceResponse>
+    ) {
+        request.validate()
+        val authenticatedUserId = getUserIdFromSecurityContext()
+        if (authenticatedUserId.toString() == request.userId)
+            throw ApiException(ApiExceptions.ILLEGAL_ARGUMENT)
+        if (!cerbosAccessService.checkAccess(authenticatedUserId, request.spaceId, REMOVE_USER_FROM_SPACE.actionName))
+            throw ApiException(INSUFFICIENT_PERMISSIONS)
+        userSpaceRoleService.removeUserFromSpace(
+            userId = request.userId.toUuid(),
+            spaceId = request.spaceId
+        )
+        responseObserver.onNext(
             RemoveUserFromSpaceResponse.newBuilder().setSuccess(true).build()
-        }
+        )
+
+        responseObserver.onCompleted()
+    }
 
     private fun getUserIdFromSecurityContext(): UUID {
         val authentication = KotlinSecurityContextHolder.getContext().authentication

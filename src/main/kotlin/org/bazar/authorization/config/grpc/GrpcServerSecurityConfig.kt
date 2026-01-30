@@ -2,18 +2,12 @@ package org.bazar.authorization.config.grpc
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.grpc.Context
-import io.grpc.Contexts
-import io.grpc.ServerCall
-import io.grpc.ServerCallHandler
 import io.grpc.ServerInterceptor
 import org.bazar.authorization.config.grpc.interceptors.KotlinServerInterceptor
-import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.security.oauth2.server.resource.autoconfigure.OAuth2ResourceServerProperties
-import org.springframework.boot.security.oauth2.server.resource.autoconfigure.servlet.JwkSetUriJwtDecoderBuilderCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -22,10 +16,7 @@ import org.springframework.grpc.server.security.AuthenticationProcessInterceptor
 import org.springframework.grpc.server.security.GrpcSecurity
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
-import org.springframework.security.core.context.SecurityContext
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.oauth2.jwt.JwtValidators
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
+import org.springframework.security.oauth2.jwt.JwtDecoders
 import org.springframework.security.oauth2.jwt.SupplierJwtDecoder
 
 @Configuration
@@ -70,12 +61,7 @@ class GrpcServerSecurityConfig(
         properties: OAuth2ResourceServerProperties
     ): SupplierJwtDecoder {
         return SupplierJwtDecoder {
-            val issuerUri = properties.jwt.issuerUri
-            val jwkSetUri = properties.jwt.jwkSetUri
-            val builder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
-            val jwtDecoder = builder.build()
-            jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(issuerUri))
-            jwtDecoder
+            JwtDecoders.fromIssuerLocation(properties.jwt.issuerUri)
         }
     }
 

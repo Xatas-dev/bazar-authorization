@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USER}
-    password: ${DB_PASS}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/bzrauthz}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:postgres}
   liquibase:
     change-log: db/changelog/changelog-master.yaml
   grpc:
@@ -12,16 +12,18 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KC_EXTERNAL_URL}/realms/${KC_REALM}
-          jwk-set-uri: ${KC_URL}/realms/${KC_REALM}/protocol/openid-connect/certs
-
+          issuer-uri: ${KC_URL:localhost:9999}/realms/${KC_REALM:bazar-realm}
+  threads:
+    virtual:
+      enabled: true
 cerbos:
-  url: ${CERBOS_URL}
-
+  url: ${CERBOS_URL:localhost:3093}
 logging:
   level:
     org:
-      bazar: ${LOGGING_LEVEL}
+      bazar: ${LOGGING_LEVEL:DEBUG}
+server:
+  port: 8090
 management:
   server:
     port: 8090

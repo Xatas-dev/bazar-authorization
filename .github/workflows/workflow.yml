@@ -1,72 +1,98 @@
-name: bazar-authorization
+name: CI/CD
 
 on:
   push:
-    # 1. Trigger ONLY on release branches
     branches:
       - "release/**"
+      - "master"
+  pull_request:
+    branches:
+      - "dev"
+      - "master"
   workflow_dispatch:
+permissions:
+  contents: write
+
 env:
   SERVICE_CONTEXT: ./
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/bazar-authorization
 
 jobs:
-  release-build:
-    runs-on: ubuntu-latest
-
+  build-and-deploy:
+    runs-on: ubuntu-24.04
+    
     steps:
+      # ======================================================
+      # STEP 0: Checkout Code (CRITICAL - WAS MISSING)
+      # ======================================================
       - name: Checkout Code
         uses: actions/checkout@v4
-
       # ======================================================
-      # STEP 1: Extract Version from Gradle
-      # We need Java just for this step to run './gradlew properties'
+      # STEP 1: Setup GraalVM Environment<!--citation:5-->
       # ======================================================
-      - name: Set up JDK 21
+      - name: Set up JDK 25
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '25'
           distribution: 'temurin'
+          cache: 'gradle'
 
-      - name: Extract Version from Gradle
+      - name: Extract Version
         id: get_version
         working-directory: ${{ env.SERVICE_CONTEXT }}
         run: |
-          # Make gradlew executable
           chmod +x gradlew
-          
-          # Ask Gradle for the version property
-          # -q = quiet (no welcome message)
           VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')
-          
-          echo "Detected Gradle Version: $VERSION"
-          
-          # Save it to GitHub Environment Variables for the next steps
           echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Detected version: $VERSION"
 
       # ======================================================
-      # STEP 2: Standard Docker Build
+      # STEP 2: Docker Setup
       # ======================================================
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
+        # LOGIC: Only login if this is a 'release' branch push
+        if: startsWith(github.ref, 'refs/heads/master')
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and Push
+      # ======================================================
+      # STEP 3: Build & Push (Conditional)
+      # ======================================================
+      - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: ${{ env.SERVICE_CONTEXT }}
           file: ${{ env.SERVICE_CONTEXT }}/Dockerfile
-          push: true
-          # Use the extracted APP_VERSION variable here
+          # LOGIC: Push only on master branches. Otherwise, just load/test.
+          push: ${{ startsWith(github.ref, 'refs/heads/master') }}
+          load: ${{ !startsWith(github.ref, 'refs/heads/master') }}
           tags: |
             ${{ env.IMAGE_NAME }}:${{ env.APP_VERSION }}
             ${{ env.IMAGE_NAME }}:latest
-
-          # Caching
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      # ======================================================
+      # STEP 4: Create or Move Git Tag (On Merge to Master)
+      # ======================================================
+      - name: Create or Update Git Tag
+        if: github.ref == 'refs/heads/master'
+        run: |
+          TAG_NAME="bauth-${{ env.APP_VERSION }}"
+
+          # Configure git user (required for tagging)
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          echo "Force updating tag $TAG_NAME to point to current commit..."
+
+          # -f: Force (overwrite if exists)
+          # -a: Annotated tag (stores history/message)
+          git tag -fa "$TAG_NAME" -m "Auto-tag release $TAG_NAME"
+
+          # Push with --force to update the remote tag
+          git push origin -f "$TAG_NAME"
