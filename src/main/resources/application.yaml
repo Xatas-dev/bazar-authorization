@@ -24,6 +24,10 @@ logging:
       bazar: ${LOGGING_LEVEL:DEBUG}
 server:
   port: 8090
+  tomcat:
+    threads:
+      max: 20
+      min-spare: 5
 management:
   server:
     port: 8090
