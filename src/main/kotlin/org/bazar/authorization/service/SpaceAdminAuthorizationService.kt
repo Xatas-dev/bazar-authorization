@@ -43,6 +43,7 @@ class SpaceAdminAuthorizationService(
         responseObserver.onNext(
             DeleteSpaceResponse.newBuilder().setSuccess(true).build()
         )
+        responseObserver.onCompleted()
     }
 
     override fun createSpace(

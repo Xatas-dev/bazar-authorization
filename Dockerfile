@@ -9,11 +9,6 @@ WORKDIR /app
 COPY build.gradle.kts settings.gradle.kts ./
 COPY gradle ./gradle
 
-# Download dependencies (this layer will be cached unless dependencies change)
-# 'no-daemon' prevents Gradle from hanging in the background
-RUN gradle clean build -x test --no-daemon --quiet || return 0
-
-# Copy source code and build the final jar
 COPY src ./src
 RUN gradle bootJar -x test --no-daemon
 
@@ -32,7 +27,7 @@ WORKDIR /application
 
 # Optimize Java memory usage for containers
 # MaxRAMPercentage=75.0 means the JVM will use 75% of the container's available memory limit (e.g., 384MB of a 512MB container)
-ENV JAVA_OPTS="-XX:MaxRAMPercentage=75.0 -XX:+UseStringDeduplication -Xmx80M"
+ENV JDK_JAVA_OPTIONS="-XX:MaxRAMPercentage=80.0 -XX:+UseStringDeduplication -XX:MaxHeapFreeRatio=10 -XX:MinHeapFreeRatio=5 -Xss512k"
 
 # Create a non-root user for security (best practice)
 #RUN addgroup -S spring && adduser -S spring -G spring && chown -R spring:spring /application
