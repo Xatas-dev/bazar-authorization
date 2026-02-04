@@ -1,88 +1,151 @@
-name: CI/CD
+name: CI/CD Pipeline - Authorization
+
+permissions:
+  actions: read
+  contents: write
+  packages: read
 
 on:
   push:
     branches:
-      - "release/**"
-      - "master"
+      - dev
+      - master
   pull_request:
     branches:
-      - "dev"
-      - "master"
-  workflow_dispatch:
-permissions:
-  contents: write
+      - dev
+      - master
+  workflow_dispatch: 
 
 env:
   SERVICE_CONTEXT: ./
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/bazar-authorization
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-24.04
+  pre_job:
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          skip_after_successful_duplicate: 'true'
+
+  # CODE SCAN
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
+    # Runner size impacts CodeQL analysis time. To learn more, please see:
+    #   - https://gh.io/recommended-hardware-resources-for-running-codeql
+    #   - https://gh.io/supported-runners-and-hardware-resources
+    #   - https://gh.io/using-larger-runners (GitHub.com only)
+    # Consider using larger runners or machines with greater resources for possible analysis time improvements.
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    permissions:
+      # required for all workflows
+      security-events: write
+
+      # required to fetch internal or private CodeQL packs
+      packages: read
+
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            build-mode: none
+          - language: java-kotlin
+            build-mode: autobuild
+        # CodeQL supports the following values keywords for 'language': 'actions', 'c-cpp', 'csharp', 'go', 'java-kotlin', 'javascript-typescript', 'python', 'ruby', 'rust', 'swift'
+        # Use `c-cpp` to analyze code written in C, C++ or both
+        # Use 'java-kotlin' to analyze code written in Java, Kotlin or both
+        # Use 'javascript-typescript' to analyze code written in JavaScript, TypeScript or both
+        # To learn more about changing the languages that are analyzed or customizing the build mode for your analysis,
+        # see https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning.
+        # If you are analyzing a compiled language, you can modify the 'build-mode' for that language to customize how
+        # your codebase is analyzed, see https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/codeql-code-scanning-for-compiled-languages
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Add any setup steps before running the `github/codeql-action/init` action.
+      # This includes steps like installing compilers or runtimes (`actions/setup-node`
+      # or others). This is typically only required for manual builds.
+      # - name: Setup runtime (example)
+      #   uses: actions/setup-example@v1
+
+      # Initializes the CodeQL tools for scanning.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          # If you wish to specify custom queries, you can do so here or in a config file.
+          # By default, queries listed here will override any specified in a config file.
+          # Prefix the list here with "+" to use these queries and those in the config file.
+
+          # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
+          # queries: security-extended,security-and-quality
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:${{matrix.language}}"
+  docker-build-and-publish:
+    needs: pre_job
+    runs-on: ubuntu-latest
+    outputs:
+      app-version: ${{ steps.get_version.outputs.APP_VERSION }}
+    if: |
+      ${{ needs.pre_job.outputs.should_skip != 'true' && (
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch') }}
     
     steps:
-      # ======================================================
-      # STEP 0: Checkout Code (CRITICAL - WAS MISSING)
-      # ======================================================
-      - name: Checkout Code
-        uses: actions/checkout@v4
-      # ======================================================
-      # STEP 1: Setup GraalVM Environment<!--citation:5-->
-      # ======================================================
-      - name: Set up JDK 25
-        uses: actions/setup-java@v4
-        with:
-          java-version: '25'
-          distribution: 'temurin'
-          cache: 'gradle'
-
+      - uses: actions/checkout@v4
       - name: Extract Version
         id: get_version
-        working-directory: ${{ env.SERVICE_CONTEXT }}
         run: |
-          chmod +x gradlew
-          VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')
-          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          VERSION=$(grep "^version\s*=" build.gradle.kts | sed -E 's/.*version\s*=\s*"([^"]+)".*/\1/')
           echo "Detected version: $VERSION"
-
-      # ======================================================
-      # STEP 2: Docker Setup
-      # ======================================================
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "APP_VERSION=$VERSION" >> $GITHUB_OUTPUT
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
+      
       - name: Login to Docker Hub
-        # LOGIC: Only login if this is a 'release' branch push
-        if: startsWith(github.ref, 'refs/heads/master')
+        if: github.event_name == 'push' && github.ref_name == 'master' || github.event_name == 'workflow_dispatch'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      # ======================================================
-      # STEP 3: Build & Push (Conditional)
-      # ======================================================
-      - name: Build and Push Docker Image
+      
+      - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ env.SERVICE_CONTEXT }}
-          file: ${{ env.SERVICE_CONTEXT }}/Dockerfile
-          # LOGIC: Push only on master branches. Otherwise, just load/test.
-          push: ${{ startsWith(github.ref, 'refs/heads/master') }}
-          load: ${{ !startsWith(github.ref, 'refs/heads/master') }}
+          context: .
+          file: ./Dockerfile
+          push: ${{ github.event_name == 'push' && github.ref_name == 'master' || github.event_name == 'workflow_dispatch' }}
+          load: ${{ !(github.event_name == 'push' && github.ref_name == 'master') && !(github.event_name == 'workflow_dispatch') }}
           tags: |
             ${{ env.IMAGE_NAME }}:${{ env.APP_VERSION }}
             ${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      # ======================================================
-      # STEP 4: Create or Move Git Tag (On Merge to Master)
-      # ======================================================
+  create-tag:
+    needs: docker-build-and-publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - name: Create or Update Git Tag
         if: github.ref == 'refs/heads/master'
         run: |
-          TAG_NAME="bauth-${{ env.APP_VERSION }}"
+          TAG_NAME="bauth-${{ needs.docker-build-and-publish.outputs.app-version }}"
 
           # Configure git user (required for tagging)
           git config user.name "github-actions[bot]"
