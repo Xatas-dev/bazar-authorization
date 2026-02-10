@@ -7,7 +7,7 @@ import io.netty.handler.codec.http.HttpStatusClass
 class ApiException(
     val exceptionType: ApiExceptions,
     val customMessage: String = ""
-) : RuntimeException(exceptionType.message + customMessage) {
+) : RuntimeException("${exceptionType.message}: $customMessage") {
 
     fun getFullErrorMessage() = exceptionType.message + customMessage
 }
@@ -21,5 +21,6 @@ enum class ApiExceptions(
     NO_SUCH_USER_IN_SPACE("No such user found in space: ", HttpResponseStatus.NOT_FOUND),
     SPACE_ALREADY_HAS_CREATOR("Space already has it's creator", HttpResponseStatus.BAD_REQUEST),
     NO_SUCH_ACTION("No such authorization action", HttpResponseStatus.BAD_REQUEST),
-    INSUFFICIENT_PERMISSIONS("No permission to access this resource", HttpResponseStatus.FORBIDDEN)
+    INSUFFICIENT_PERMISSIONS("No permission to access this resource", HttpResponseStatus.FORBIDDEN),
+    CANNOT_REMOVE_HIMSELF_FROM_SPACE("User cannot remove himself from space", HttpResponseStatus.BAD_REQUEST)
 }

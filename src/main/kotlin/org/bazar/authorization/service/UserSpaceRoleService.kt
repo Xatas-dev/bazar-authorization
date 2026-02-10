@@ -1,17 +1,14 @@
 package org.bazar.authorization.service
 
-import org.bazar.authorization.persistence.entity.UserSpaceRole
-import org.bazar.authorization.persistence.entity.enums.Role
-import org.bazar.authorization.persistence.repository.UserSpaceRoleRepository
+import org.bazar.authorization.database.entity.UserSpaceRole
+import org.bazar.authorization.database.entity.enums.Role
+import org.bazar.authorization.database.repository.UserSpaceRoleRepository
 import org.bazar.authorization.utils.exceptions.ApiException
+import org.bazar.authorization.utils.exceptions.ApiExceptions
 import org.bazar.authorization.utils.exceptions.ApiExceptions.NO_SUCH_USER_IN_SPACE
 import org.bazar.authorization.utils.exceptions.ApiExceptions.SPACE_ALREADY_HAS_CREATOR
-import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
-@Service
-@Transactional
 class UserSpaceRoleService(
     private val userSpaceRoleRepository: UserSpaceRoleRepository
 ) {
@@ -35,7 +32,7 @@ class UserSpaceRoleService(
         if (existingRole != null) {
             throw ApiException(
                 SPACE_ALREADY_HAS_CREATOR,
-                "space $spaceId has userId $userId as CREATOR" // Logic kept from your original code
+                "space $spaceId has userId $userId as CREATOR"
             )
         }
 
@@ -48,12 +45,12 @@ class UserSpaceRoleService(
         )
     }
 
-    fun removeUserFromSpace(userId: UUID, spaceId: Long): Boolean {
+    fun removeUserFromSpace(userId: UUID, spaceId: Long) {
         val rowsDeleted = userSpaceRoleRepository.deleteBySpaceIdAndUserId(spaceId, userId)
-        return rowsDeleted > 0
+        if (rowsDeleted <= 0)
+            throw ApiException(NO_SUCH_USER_IN_SPACE, "userId = $userId, spaceId = $spaceId")
     }
 
-    @Transactional(readOnly = true)
     fun getUserRole(userId: UUID, spaceId: Long): Role {
         val userSpaceRole = userSpaceRoleRepository.findById(spaceId, userId)
             ?: throw ApiException(NO_SUCH_USER_IN_SPACE, "userId = $userId, spaceId = $spaceId")

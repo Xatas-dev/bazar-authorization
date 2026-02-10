@@ -4,29 +4,30 @@ import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.groups.Tuple
+import org.bazar.authorization.database.entity.UserSpaceRole
+import org.bazar.authorization.database.entity.enums.Role
+import org.bazar.authorization.database.repository.UserSpaceRoleRepository
 import org.bazar.authorization.grpc.AddUserToSpaceRequest
 import org.bazar.authorization.grpc.CreateSpaceRequest
+import org.bazar.authorization.grpc.GrpcSecurityContext
 import org.bazar.authorization.grpc.RemoveUserFromSpaceRequest
 import org.bazar.authorization.infrastructure.BaseGrpcTest
-import org.bazar.authorization.persistence.entity.UserSpaceRole
-import org.bazar.authorization.persistence.entity.enums.Role
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.springframework.security.test.context.support.WithMockUser
+import org.koin.test.get
 import java.util.*
 
-@WithMockUser
-class SpaceAdminAuthorizationServiceTest() : BaseGrpcTest() {
+class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
 
     @Test
     @DisplayName("Adding user to space should save user space role and return true")
-    fun addUserRoleToSpace_shouldSaveAndReturnTrue() {
+    fun addUserRoleToSpace_shouldSaveAndReturnTrue() = integrationTest {
         //given
-        val authenticatedUserId = jwtTestSupplier.userId
         val userToBeAdded = UUID.randomUUID()
+        val userSpaceRoleRepository = get<UserSpaceRoleRepository>()
         userSpaceRoleRepository.save(UserSpaceRole(spaceId = 2L, authenticatedUserId, Role.CREATOR))
         //when
         val response = adminStub.addUserToSpace(
@@ -48,10 +49,10 @@ class SpaceAdminAuthorizationServiceTest() : BaseGrpcTest() {
 
     @Test
     @DisplayName("should throw insufficient permissions for the action")
-    fun addUserRoleToSpace_shouldThrowInsufficientPermissions() {
+    fun addUserRoleToSpace_shouldThrowInsufficientPermissions() = integrationTest {
         //given
         val userToBeAdded = UUID.randomUUID()
-        val authenticatedUserId = jwtTestSupplier.userId
+        val userSpaceRoleRepository = get<UserSpaceRoleRepository>()
         userSpaceRoleRepository.save(UserSpaceRole(2L, authenticatedUserId, Role.MEMBER))
         //when
         val error = assertThrows<StatusRuntimeException> {
@@ -74,10 +75,10 @@ class SpaceAdminAuthorizationServiceTest() : BaseGrpcTest() {
 
     @Test
     @DisplayName("should remove user role from space")
-    fun removeUserFromSpace_shouldReturnTrue() {
+    fun removeUserFromSpace_shouldReturnTrue() = integrationTest {
         //given
-        val authenticatedUserId = jwtTestSupplier.userId
         val userToBeRemovedId = UUID.randomUUID()
+        val userSpaceRoleRepository = get<UserSpaceRoleRepository>()
         userSpaceRoleRepository.save(UserSpaceRole(1L, authenticatedUserId, Role.CREATOR))
         userSpaceRoleRepository.save(UserSpaceRole(1L, userToBeRemovedId, Role.MEMBER))
         //when
@@ -95,7 +96,7 @@ class SpaceAdminAuthorizationServiceTest() : BaseGrpcTest() {
 
     @Test
     @DisplayName("should throw when empty request message")
-    fun removeUserFromSpace_whenEmptyRequest() {
+    fun removeUserFromSpace_whenEmptyRequest() = integrationTest {
         assertThrows<StatusRuntimeException> {
             adminStub.removeUserFromSpace(RemoveUserFromSpaceRequest.newBuilder().build())
         }.status == Status.INVALID_ARGUMENT
@@ -103,9 +104,9 @@ class SpaceAdminAuthorizationServiceTest() : BaseGrpcTest() {
 
     @Test
     @DisplayName("should create an owner in a space")
-    fun createSpace_shouldCreateNewUserWithRoleCreator() {
+    fun createSpace_shouldCreateNewUserWithRoleCreator()= integrationTest {
         //given
-        val authenticatedUserId = jwtTestSupplier.userId
+        val userSpaceRoleRepository = get<UserSpaceRoleRepository>()
         //when
         val response = adminStub.createSpace(CreateSpaceRequest.newBuilder().setSpaceId(1L).build())
         //then
@@ -122,9 +123,9 @@ class SpaceAdminAuthorizationServiceTest() : BaseGrpcTest() {
 
     @Test
     @DisplayName("should throw if creator already exists")
-    fun createSpace_shouldThrowIfCreatorExists() {
+    fun createSpace_shouldThrowIfCreatorExists()= integrationTest {
         //given
-        val authenticatedUserId = jwtTestSupplier.userId
+        val userSpaceRoleRepository = get<UserSpaceRoleRepository>()
         userSpaceRoleRepository.save(UserSpaceRole(1L, authenticatedUserId, Role.CREATOR))
         //when
         val error = assertThrows<StatusRuntimeException> {

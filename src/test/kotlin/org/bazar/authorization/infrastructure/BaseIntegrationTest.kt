@@ -1,65 +1,64 @@
 package org.bazar.authorization.infrastructure
 
-import dev.cerbos.sdk.CerbosBlockingClient
-import dev.cerbos.sdk.CerbosClientBuilder
-import dev.cerbos.sdk.CerbosContainer
-import org.bazar.authorization.infrastructure.config.cerbos.CerbosTestConfig
-import org.bazar.authorization.infrastructure.config.grpc.JwtTestSupplier
-import org.bazar.authorization.persistence.repository.UserSpaceRoleRepository
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Import
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
-import org.springframework.test.context.jdbc.Sql
-import org.springframework.test.context.jdbc.Sql.ExecutionPhase
-import org.testcontainers.containers.BindMode
-import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.containers.output.Slf4jLogConsumer
-import org.testcontainers.lifecycle.Startables
-import org.testcontainers.utility.DockerImageName
-import java.util.stream.Stream
+import io.ktor.server.config.*
+import io.ktor.server.testing.*
+import org.bazar.authorization.config.AppConfig
+import org.bazar.authorization.infrastructure.config.applyTestConfiguration
+import org.bazar.authorization.infrastructure.config.configureTestDatabase
+import org.bazar.authorization.infrastructure.config.configureTestGrpcServer
+import org.bazar.authorization.database.repository.UserSpaceRoleRepository
+import org.bazar.authorization.di.appModule
+import org.bazar.authorization.di.cerbosModule
+import org.bazar.authorization.di.grpcModule
+import org.bazar.authorization.di.repositoryModule
+import org.bazar.authorization.di.securityModule
+import org.bazar.authorization.di.serviceModule
+import org.bazar.authorization.infrastructure.config.TestContainers
+import org.bazar.authorization.plugins.configureContentNegotiations
+import org.bazar.authorization.plugins.configureKoin
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeAll
+import org.koin.core.component.KoinComponent
+import org.koin.core.context.startKoin
+import org.koin.test.KoinTest
+import org.koin.test.inject
+import java.util.UUID
 
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Sql("classpath:db/scripts/clearTables.sql", executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
-@Import(CerbosTestConfig::class)
-abstract class BaseIntegrationTest {
+abstract class BaseIntegrationTest : KoinTest {
 
-    @Autowired
-    lateinit var userSpaceRoleRepository: UserSpaceRoleRepository
+    val authenticatedUserId: UUID = UUID.fromString("00000000-0000-0000-0000-000000000001") // from MockGrpcSecurityInterceptor
 
-    @Autowired
-    lateinit var jwtTestSupplier: JwtTestSupplier
+    fun integrationTest(
+        block: suspend () -> Unit
+    ) = testApplication {
+        environment {
+            config = ApplicationConfig("application-test.yaml")
+        }
 
-    companion object {
+        application {
+            val testAppConfig = applyTestConfiguration()
+            configureKoin(testAppConfig)
+            configureTestDatabase()
+            configureTestGrpcServer("grpc-test-server")
+            configureContentNegotiations()
+        }
 
-        private val postgres: PostgreSQLContainer<*> = PostgreSQLContainer(DockerImageName.parse("postgres:16.0"))
-            .apply {
-                this.withDatabaseName("testDb").withUsername("test").withPassword("test")
+        startApplication()
+
+        try {
+            block()
+        } finally {
+            clearTables()
+        }
+    }
+
+    private fun clearTables() {
+        TestContainers.postgres.createConnection("").use { connection ->
+            connection.createStatement().use { statement ->
+                statement.execute("TRUNCATE TABLE user_space_role CASCADE")
             }
-
-        private val cerbosContainer: CerbosContainer = CerbosContainer()
-            .withClasspathResourceMapping("cerbos/policies", "/policies", BindMode.READ_ONLY)
-            .withLogConsumer(Slf4jLogConsumer(LoggerFactory.getLogger(BaseIntegrationTest::class.java)))
-
-        fun cerbosClient(): CerbosBlockingClient {
-            val target = cerbosContainer.target
-            return CerbosClientBuilder(target).withPlaintext().buildBlockingClient()
         }
-
-        @JvmStatic
-        @DynamicPropertySource
-        fun datasourceConfig(registry: DynamicPropertyRegistry) {
-            Startables.deepStart(Stream.of(postgres, cerbosContainer)).join()
-
-            registry.add("spring.datasource.url", postgres::getJdbcUrl)
-            registry.add("spring.datasource.username", postgres::getUsername)
-            registry.add("spring.datasource.password", postgres::getPassword)
-        }
-
     }
 }

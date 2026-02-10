@@ -5,7 +5,7 @@ import org.bazar.authorization.grpc.AuthorizeRequest
 import org.bazar.authorization.grpc.CreateSpaceRequest
 import org.bazar.authorization.grpc.DeleteSpaceRequest
 import org.bazar.authorization.grpc.RemoveUserFromSpaceRequest
-import org.bazar.authorization.persistence.entity.enums.Role
+import org.bazar.authorization.database.entity.enums.Role
 import org.bazar.authorization.utils.exceptions.ApiException
 import org.bazar.authorization.utils.exceptions.ApiExceptions
 

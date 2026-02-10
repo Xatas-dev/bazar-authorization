@@ -3,26 +3,29 @@ package org.bazar.authorization.service
 import dev.cerbos.sdk.CerbosBlockingClient
 import dev.cerbos.sdk.builders.Principal
 import dev.cerbos.sdk.builders.Resource
-import org.bazar.authorization.model.authz.enums.AuthorizationAction
-import org.bazar.authorization.utils.exceptions.ApiException
-import org.bazar.authorization.utils.exceptions.ApiExceptions
-import org.bazar.authorization.utils.extensions.toUuid
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.stereotype.Service
-import java.util.UUID
+import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
+import java.util.*
 
-@Service
 class CerbosAccessService(
     private val cerbosClient: CerbosBlockingClient,
     private val userSpaceRoleService: UserSpaceRoleService
 ) {
 
-    fun checkAccess(userId: UUID, spaceId: Long, action: String): Boolean {
-        val userRole = userSpaceRoleService.getUserRole(userId, spaceId)
+    /**
+     * Checks access using Cerbos.
+     * Note: userSpaceRoleService.getUserRole likely queries the DB,
+     * so we use newSuspendedTransaction for safe coroutine execution.
+     */
+    suspend fun checkAccess(userId: UUID, spaceId: Long, action: String): Boolean {
+        // 1. Fetch user role (DB call)
+        val userRole = suspendTransaction {
+            userSpaceRoleService.getUserRole(userId, spaceId)
+        }
+
+        // 2. Query Cerbos
         val result = cerbosClient.check(
             Principal.newInstance(userId.toString(), userRole.name),
-            Resource.newInstance("space"),
+            Resource.newInstance("space", spaceId.toString()), // Good practice to include resource ID
             action
         )
 

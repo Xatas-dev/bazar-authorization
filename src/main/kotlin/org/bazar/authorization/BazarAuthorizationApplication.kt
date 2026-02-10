@@ -1,12 +1,17 @@
 package org.bazar.authorization
 
-import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.runApplication
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
-
-@SpringBootApplication
-class BazarAuthorizationApplication
+import io.ktor.server.application.*
+import org.bazar.authorization.plugins.*
 
 fun main(args: Array<String>) {
-    runApplication<BazarAuthorizationApplication>(*args)
+    io.ktor.server.netty.EngineMain.main(args)
+}
+
+fun Application.module() {
+    val appConfig = applyConfigurations()
+    configureKoin(appConfig)
+    configureDatabase()
+    configureGrpcServer()
+    configureContentNegotiations()
+    configureMonitoring()
 }

@@ -1,103 +1,118 @@
 import com.google.protobuf.gradle.id
 
 plugins {
-    kotlin("jvm") version "2.2.21"
-    kotlin("plugin.spring") version "2.2.21"
-    id("org.springframework.boot") version "4.0.0"
-    id("io.spring.dependency-management") version "1.1.7"
-    id("com.google.protobuf") version "0.9.5"
+    kotlin("jvm") version "2.3.0"
+    id("io.ktor.plugin") version "3.4.0"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.0"
+    id("com.google.protobuf") version "0.9.5" // For gRPC
 }
-val springGrpcVersion by extra("1.0.0")
+
 group = "org.bazar"
 version = "1.0.1"
-description = "bazar-authorization"
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
+val exposedVersion = "1.0.0"
+val logbackVersion = "1.5.13"
+val hikariCpVersion = "7.0.2"
+val postgresqlVersion = "42.7.9"
+val micrometerRegistryVersion = "1.16.3"
+val koinVersion = "4.1.1"
+val grpcKotlinStubVersion = "1.5.0"
+val grpcNettyVersion = "1.79.0"
+val protobufVersion = "1.79.0"
+val protobufKotlinVersion = "4.33.4"
+val protocVersion = "4.33.4"
+val grpcJavaPluginVersion = "1.79.0"
+val grpcKotlinPluginVersion = "1.5.0"
+val hopliteVersion = "2.9.0"
+val configYamlVersion = "2.3.7"
+val cerbosSdkVersion = "0.16.0"
+val testContainersVersion = "2.0.3"
+val testContainersPostgresqlVersion = "1.21.3"
+val liquibaseTestVersion = "5.0.1"
+
+application {
+    mainClass = "org.bazar.authorization.BazarAuthorizationApplicationKt"
 }
 
 repositories {
     mavenCentral()
 }
 
-val mockitoAgent = configurations.create("mockitoAgent")
+kotlin {
+    jvmToolchain(21)
+}
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-webmvc")
-    // Mockito agent fix
-    testImplementation("org.mockito:mockito-core:5.20.0")
-    mockitoAgent("org.mockito:mockito-core:5.20.0") { isTransitive = false }
-    //Observability
-    implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    //gRPC
-    implementation("io.grpc:grpc-services")
-    implementation("org.springframework.grpc:spring-grpc-spring-boot-starter:1.0.0")
-    //Cerbos
-    implementation("dev.cerbos:cerbos-sdk-java:0.16.0")
-    //Security
-    implementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server")
+    // Ktor Core
+    implementation("io.ktor:ktor-server-core-jvm")
+    implementation("io.ktor:ktor-server-netty-jvm")
+    implementation("io.ktor:ktor-server-auth-jwt-jvm")
+    implementation("io.ktor:ktor-server-content-negotiation-jvm")
+    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm")
+    implementation("io.ktor:ktor-server-metrics-micrometer-jvm")
+    implementation("io.ktor:ktor-server-config-yaml:${configYamlVersion}")
+    // Logging
+    implementation("ch.qos.logback:logback-classic:$logbackVersion")
 
-    //DB
-    implementation("org.springframework.boot:spring-boot-starter-liquibase")
-    runtimeOnly("org.postgresql:postgresql")
-    implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
+    // Database
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-java-time:${exposedVersion}")
+    implementation("com.zaxxer:HikariCP:$hikariCpVersion")
+    implementation("org.postgresql:postgresql:$postgresqlVersion")
+
+    // Monitoring (Actuator equivalent)
+    implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryVersion")
+
+    // DI
+    implementation("io.insert-koin:koin-ktor:$koinVersion")
+    implementation("io.insert-koin:koin-logger-slf4j:$koinVersion")
+
+    // gRPC
+    implementation("io.grpc:grpc-kotlin-stub:$grpcKotlinStubVersion")
+    implementation("io.grpc:grpc-netty-shaded:$grpcNettyVersion") // High performance shaded netty
+    implementation("io.grpc:grpc-protobuf:$protobufVersion")
+    implementation("io.grpc:grpc-stub:$protobufVersion")
+    implementation("com.google.protobuf:protobuf-kotlin:$protobufKotlinVersion")
+    implementation("io.grpc:grpc-services:$protobufVersion")
+
+    //Cerbos
+    implementation("dev.cerbos:cerbos-sdk-java:$cerbosSdkVersion")
 
     //Test
-    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
-    testImplementation("org.springframework.security:spring-security-test")
-    testImplementation("org.springframework.grpc:spring-grpc-test")
-    testImplementation("org.testcontainers:postgresql:1.21.0")
-    testImplementation("org.springframework.boot:spring-boot-testcontainers")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
-
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.grpc:spring-grpc-dependencies:${property("springGrpcVersion")}")
-    }
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
-    }
+    testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
+    testImplementation("org.testcontainers:postgresql:$testContainersPostgresqlVersion")
+    testImplementation("io.ktor:ktor-server-test-host")
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation("io.insert-koin:koin-test:$koinVersion")
+    testImplementation("io.insert-koin:koin-test-junit5:$koinVersion")
+    testImplementation("org.testcontainers:junit-jupiter:1.20.4")
+    testImplementation("io.grpc:grpc-testing:$grpcNettyVersion")
+    testImplementation("io.grpc:grpc-inprocess:$grpcNettyVersion")
+    testImplementation("org.assertj:assertj-core:3.27.3")
+    implementation("org.liquibase:liquibase-core:$liquibaseTestVersion")
 }
 
 protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc"
-    }
+    protoc { artifact = "com.google.protobuf:protoc:$protocVersion" }
     plugins {
-        id("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java"
-        }
+        id("grpc") { artifact = "io.grpc:protoc-gen-grpc-java:$grpcJavaPluginVersion" }
+        id("grpckt") { artifact = "io.grpc:protoc-gen-grpc-kotlin:$grpcKotlinPluginVersion:jdk8@jar" }
     }
     generateProtoTasks {
         all().forEach {
             it.plugins {
-                id("grpc") {
-                    option("@generated=omit")
-                }
+                id("grpc")
+                id("grpckt")
+            }
+            it.builtins {
+                id("kotlin")
             }
         }
     }
 }
 
-allOpen {
-    annotation("jakarta.persistence.Entity")
-    annotation("jakarta.persistence.MappedSuperclass")
-    annotation("jakarta.persistence.Embeddable")
-}
-
-tasks.compileKotlin {
-    kotlinDaemonJvmArguments.add("-Xmx4096m")
-}
-
-tasks.withType<Test> {
+tasks.test {
     useJUnitPlatform()
-    jvmArgs("-javaagent:${mockitoAgent.asPath}", "-Xshare:off")
 }
