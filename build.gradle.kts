@@ -113,6 +113,10 @@ protobuf {
     }
 }
 
+tasks.compileKotlin {
+    kotlinDaemonJvmArguments.add("-Xmx4096m")
+}
+
 tasks.test {
     useJUnitPlatform()
 }
