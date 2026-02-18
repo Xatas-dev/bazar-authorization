@@ -4,18 +4,21 @@ import org.assertj.core.api.Assertions.assertThat
 import org.bazar.authorization.grpc.AuthorizeRequest
 import org.bazar.authorization.infrastructure.BaseGrpcTest
 import org.bazar.authorization.model.authz.enums.AuthorizationAction
-import org.bazar.authorization.persistence.entity.UserSpaceRole
-import org.bazar.authorization.persistence.entity.enums.Role.MEMBER
+import org.bazar.authorization.database.entity.UserSpaceRole
+import org.bazar.authorization.database.entity.enums.Role.MEMBER
+import org.bazar.authorization.database.repository.UserSpaceRoleRepository
+import org.bazar.authorization.grpc.GrpcSecurityContext
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.koin.test.get
 
 class SpaceAuthorizationServiceTest : BaseGrpcTest() {
 
     @Test
     @DisplayName("User has role member in space, should grant access")
-    fun testAuthorize_shouldGrandAccess() {
+    fun testAuthorize_shouldGrandAccess()= integrationTest {
         //given
-        val authenticatedUserId = jwtTestSupplier.userId
+        val userSpaceRoleRepository = get<UserSpaceRoleRepository>()
         userSpaceRoleRepository.save(UserSpaceRole(1L, authenticatedUserId, MEMBER))
         //when
         val response = stub.authorize(
@@ -31,7 +34,7 @@ class SpaceAuthorizationServiceTest : BaseGrpcTest() {
 
     @Test
     @DisplayName("User doesn't have role in space, should deny access")
-    fun testAuthorize_shouldDenyAccess() {
+    fun testAuthorize_shouldDenyAccess()= integrationTest {
         //when
         val response = stub.authorize(
             AuthorizeRequest.newBuilder()
@@ -46,9 +49,9 @@ class SpaceAuthorizationServiceTest : BaseGrpcTest() {
 
     @Test
     @DisplayName("User has role CREATOR and tries to add more users, should deny access")
-    fun testAuthorize_shouldDenyAccessNotEnoughRole() {
+    fun testAuthorize_shouldDenyAccessNotEnoughRole() = integrationTest {
         //given
-        val authenticatedUserId = jwtTestSupplier.userId
+        val userSpaceRoleRepository = get<UserSpaceRoleRepository>()
         userSpaceRoleRepository.save(UserSpaceRole(1L, authenticatedUserId, MEMBER))
         //when
         val response = stub.authorize(
