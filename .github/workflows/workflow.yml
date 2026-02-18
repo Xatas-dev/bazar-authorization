@@ -129,7 +129,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./docker/Dockerfile
+          file: ./Dockerfile
           push: ${{ github.event_name == 'push' && github.ref_name == 'master' || github.event_name == 'workflow_dispatch' }}
           load: ${{ !(github.event_name == 'push' && github.ref_name == 'master') && !(github.event_name == 'workflow_dispatch') }}
           tags: |
@@ -141,7 +141,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./docker/migrations.Dockerfile
+          file: ./migrations.Dockerfile
           push: ${{ startsWith(github.ref, 'refs/heads/master') }}
           load: ${{ !startsWith(github.ref, 'refs/heads/master') }}
           tags: |

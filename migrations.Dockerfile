@@ -1,6 +1,6 @@
 FROM liquibase/liquibase:5.0.1
 
-COPY ../src/main/resources/db/changelog /liquibase/changelog
+COPY src/main/resources/db/changelog /liquibase/changelog
 
 USER root
 RUN curl -L -o /liquibase/lib/postgresql.jar \
