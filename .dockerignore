@@ -8,6 +8,5 @@ build
 .github
 target
 .git
-Dockerfile
 README.md
 HELP.md
