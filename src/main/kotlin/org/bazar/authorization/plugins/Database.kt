@@ -24,9 +24,7 @@ fun Application.configureDatabase() {
 
 private fun initDb(config: AppConfig, logger: Logger) {
     val pool = createHikariDataSource(config.db)
-    if (config.profile != Profile.PROD){
-        runMigrations(pool, logger)
-    }
+    runMigrations(pool, logger)
     Database.connect(pool)
     logger.info("Database initialization completed successfully.")
 }

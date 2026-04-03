@@ -10,7 +10,7 @@ plugins {
 group = "org.bazar"
 version = "1.0.1"
 
-val exposedVersion = "1.0.0"
+val exposedVersion = "1.2.0"
 val logbackVersion = "1.5.13"
 val hikariCpVersion = "7.0.2"
 val postgresqlVersion = "42.7.9"
@@ -59,6 +59,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:${exposedVersion}")
+    implementation("org.jetbrains.exposed:exposed-json:${exposedVersion}")
     implementation("com.zaxxer:HikariCP:$hikariCpVersion")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
 
