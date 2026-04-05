@@ -13,4 +13,6 @@ class RolesActionEntity(id: EntityID<CompositeID>) : CompositeEntity(id) {
 
     var action by ActionEntity referencedOn RolesActions.action
     var assignedAttribute by RolesActions.assignedAttribute
+    val createdAt by RolesActions.createdAt
+    val updatedAt by RolesActions.updatedAt
 }

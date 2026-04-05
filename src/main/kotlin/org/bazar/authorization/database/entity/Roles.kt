@@ -8,6 +8,6 @@ object Roles : LongIdTable("role") {
     val name = varchar("name", length = 255).nullable()
     val spaceId = long("space_id").nullable()
     val scope = enumerationByName(name = "scope", length = 50, klass = RoleScope::class)
-    val createdAt = timestamp("createdAt")
-    val updatedAt = timestamp("updatedAt")
+    val createdAt = timestamp("created_at")
+    val updatedAt = timestamp("updated_at")
 }

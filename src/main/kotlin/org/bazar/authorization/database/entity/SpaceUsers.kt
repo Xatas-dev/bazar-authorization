@@ -8,6 +8,6 @@ object SpaceUsers : LongIdTable("space_user") {
     val userId = varchar("user_id", length = 255)
     val role = reference("role_id", Roles)
     val creator = bool("creator")
-    val createdAt = timestamp("createdAt")
-    val updatedAt = timestamp("updatedAt")
+    val createdAt = timestamp("created_at")
+    val updatedAt = timestamp("updated_at")
 }

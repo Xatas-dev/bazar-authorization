@@ -8,6 +8,6 @@ object ActionAttributes : IntIdTable("action_attribute") {
     val name = varchar("name", length = 255)
     val displayName = varchar("display_name", length = 255)
     val valueType = varchar("value_type", length = 255)
-    val createdAt = timestamp("createdAt")
-    val updatedAt = timestamp("updatedAt")
+    val createdAt = timestamp("created_at")
+    val updatedAt = timestamp("updated_at")
 }

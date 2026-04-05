@@ -6,6 +6,8 @@ create table roles_actions
     role_id            bigint not null references "role" (id),
     action_id          bigint not null references action (id),
     assigned_attribute jsonb,
+    created_at timestamptz not null,
+    updated_at timestamptz not null,
     constraint pk_roles_actions primary key (role_id, action_id),
     constraint fk_roles_actions_role
         foreign key (role_id) references "role" (id),
