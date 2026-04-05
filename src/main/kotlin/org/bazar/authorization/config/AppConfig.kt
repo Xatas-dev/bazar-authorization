@@ -17,25 +17,3 @@ data class DatabaseConfig(val jdbcUrl: String, val user: String, val password: S
 data class AuthConfig(val issuer: String, val jwkUrl: String)
 data class GrpcConfig(val port: Int)
 data class CerbosConfig(val url: String)
-
-fun ApplicationConfig.toAppConfig(): AppConfig {
-    val loggingMap = mutableMapOf<String, String>()
-    config("logging.level").keys().forEach { key ->
-        loggingMap[key] = property("logging.level.$key").getString()
-    }
-    return AppConfig(
-        db = DatabaseConfig(
-            property("db.jdbcUrl").getString(),
-            property("db.user").getString(),
-            property("db.password").getString()
-        ),
-        auth = AuthConfig(
-            property("auth.issuer").getString(),
-            property("auth.jwkUrl").getString(),
-        ),
-        grpc = GrpcConfig(property("grpc.port").getString().toInt()),
-        cerbos = CerbosConfig(property("cerbos.url").getString()),
-        profile = Profile.valueOf(property("profile").getString()),
-        logging = LoggingConfig(loggingMap)
-    )
-}

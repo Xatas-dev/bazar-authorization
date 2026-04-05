@@ -10,6 +10,8 @@ plugins {
 group = "org.bazar"
 version = "1.0.1"
 
+val ktorVersion = "3.4.0"
+val kotlinVersion = "2.3.0"
 val exposedVersion = "1.2.0"
 val logbackVersion = "1.5.13"
 val hikariCpVersion = "7.0.2"
@@ -62,6 +64,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-json:${exposedVersion}")
     implementation("com.zaxxer:HikariCP:$hikariCpVersion")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
+    implementation("org.liquibase:liquibase-core:${liquibaseTestVersion}")
 
     // Monitoring (Actuator equivalent)
     implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryVersion")
@@ -92,7 +95,7 @@ dependencies {
     testImplementation("io.grpc:grpc-testing:$grpcNettyVersion")
     testImplementation("io.grpc:grpc-inprocess:$grpcNettyVersion")
     testImplementation("org.assertj:assertj-core:3.27.3")
-    implementation("org.liquibase:liquibase-core:$liquibaseTestVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.12.0")
 }
 
 protobuf {

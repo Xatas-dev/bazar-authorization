@@ -1,14 +1,13 @@
 apiVersion: api.cerbos.dev/v1
 resourcePolicy:
   version: default
-  resource: space
+  resource: space_user
   rules:
     - actions:
-        - WRITE
+        - ADD
       effect: EFFECT_ALLOW
       roles:
         - user
-
     - actions:
         - DELETE
       effect: EFFECT_ALLOW

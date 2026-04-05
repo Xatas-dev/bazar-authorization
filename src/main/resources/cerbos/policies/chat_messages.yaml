@@ -1,8 +1,13 @@
 apiVersion: api.cerbos.dev/v1
 resourcePolicy:
   version: default
-  resource: space
+  resource: chat_messages
   rules:
+    - actions:
+        - READ
+      effect: EFFECT_ALLOW
+      roles:
+        - user
     - actions:
         - WRITE
       effect: EFFECT_ALLOW

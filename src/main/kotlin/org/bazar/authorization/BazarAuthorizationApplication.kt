@@ -2,13 +2,14 @@ package org.bazar.authorization
 
 import io.ktor.server.application.*
 import org.bazar.authorization.plugins.*
+import org.bazar.authorization.plugins.database.configureDatabase
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
 
 fun Application.module() {
-    val appConfig = applyConfigurations()
+    val appConfig = getAppConfig()
     configureKoin(appConfig)
     configureDatabase()
     configureGrpcServer()

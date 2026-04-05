@@ -4,6 +4,7 @@ import dev.cerbos.sdk.CerbosBlockingClient
 import dev.cerbos.sdk.CerbosClientBuilder
 import org.bazar.authorization.config.AppConfig
 import org.koin.dsl.module
+import org.koin.dsl.onClose
 
 fun cerbosModule() = module {
     single<CerbosBlockingClient> {
