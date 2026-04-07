@@ -24,7 +24,7 @@ class UserSpaceRoleRepository {
     }
 
     fun findById(spaceId: Long, userId: UUID): UserSpaceRole? = transaction {
-         UserSpaceRoleTable
+        UserSpaceRoleTable
             .selectAll()
             .where { (UserSpaceRoleTable.spaceId eq spaceId) and (UserSpaceRoleTable.userId eq userId) }
             .map { it.toUserSpaceRole() }
