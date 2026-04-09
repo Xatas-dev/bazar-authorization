@@ -8,8 +8,8 @@ import javax.sql.DataSource
 
 fun Application.configureDatabase() {
     val dataSource by inject<DataSource>()
-    val liquibaseManger by inject<LiquibaseManger>()
+    val liquibaseManager by inject<LiquibaseManager>()
     Database.connect(dataSource)
-    liquibaseManger.runMigrations()
+    liquibaseManager.runMigrations()
     log.info("Database initialized successfully...")
 }

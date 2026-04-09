@@ -2,16 +2,15 @@ package org.bazar.authorization.di
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.server.application.Application
 import org.bazar.authorization.config.AppConfig
 import org.bazar.authorization.config.DatabaseConfig
-import org.bazar.authorization.plugins.database.LiquibaseManger
+import org.bazar.authorization.plugins.database.LiquibaseManager
 import org.koin.dsl.module
 import javax.sql.DataSource
 
 fun databaseModule() = module {
     single { createHikariDataSource(get<AppConfig>().db) }
-    single { LiquibaseManger(get())}
+    single { LiquibaseManager(get())}
 }
 
 private fun createHikariDataSource(config: DatabaseConfig): DataSource {

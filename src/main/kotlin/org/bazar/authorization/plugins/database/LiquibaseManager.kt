@@ -7,8 +7,8 @@ import liquibase.resource.ClassLoaderResourceAccessor
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
-class LiquibaseManger(
-    private val dataSource: DataSource,
+class LiquibaseManager(
+    private val dataSource: DataSource
 ) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
