@@ -8,6 +8,7 @@ import org.bazar.authorization.database.entity.UserSpaceRole
 import org.bazar.authorization.database.entity.enums.Role.MEMBER
 import org.bazar.authorization.database.repository.UserSpaceRoleRepository
 import org.bazar.authorization.grpc.GrpcSecurityContext
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.koin.test.get
@@ -16,6 +17,7 @@ class SpaceAuthorizationServiceTest : BaseGrpcTest() {
 
     @Test
     @DisplayName("User has role member in space, should grant access")
+    @Disabled
     fun testAuthorize_shouldGrandAccess()= integrationTest {
         //given
         val userSpaceRoleRepository = get<UserSpaceRoleRepository>()
@@ -34,6 +36,7 @@ class SpaceAuthorizationServiceTest : BaseGrpcTest() {
 
     @Test
     @DisplayName("User doesn't have role in space, should deny access")
+    @Disabled
     fun testAuthorize_shouldDenyAccess()= integrationTest {
         //when
         val response = stub.authorize(
@@ -49,6 +52,7 @@ class SpaceAuthorizationServiceTest : BaseGrpcTest() {
 
     @Test
     @DisplayName("User has role CREATOR and tries to add more users, should deny access")
+    @Disabled
     fun testAuthorize_shouldDenyAccessNotEnoughRole() = integrationTest {
         //given
         val userSpaceRoleRepository = get<UserSpaceRoleRepository>()

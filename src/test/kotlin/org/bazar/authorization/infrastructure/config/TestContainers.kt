@@ -23,6 +23,18 @@ object TestContainers {
         .withClasspathResourceMapping("cerbos/policies", "/policies", BindMode.READ_ONLY)
         .withLogConsumer(Slf4jLogConsumer(logger))
 
+    var cerbosBlockingClient: CerbosBlockingClient? = null
+
+    fun getCerbosClient(): CerbosBlockingClient {
+        if (cerbosBlockingClient == null) {
+            cerbosBlockingClient = CerbosClientBuilder(cerbos.target).withPlaintext().buildBlockingClient()
+            return cerbosBlockingClient!!
+        }
+
+        return cerbosBlockingClient!!
+    }
+
+
     init {
         Startables.deepStart(postgres, cerbos).join()
     }

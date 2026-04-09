@@ -4,7 +4,16 @@ ktor:
 grpc:
   port: 9090
 profile: TEST
-
+db:
+  jdbcUrl: dummy
+  user: dummy
+  password: dummy
+auth:
+  issuer: dummy
+  jwkUrl: dummy
+  realm: dummy
+cerbos:
+  url: dummy
 logging:
   level:
     root: INFO

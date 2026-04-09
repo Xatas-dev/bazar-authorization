@@ -15,7 +15,8 @@ fun Application.configureKoin(appConfig: AppConfig) {
             grpcModule(),
             repositoryModule(),
             serviceModule(),
-            cerbosModule()
+            cerbosModule(),
+            databaseModule()
         )
     }
 }
