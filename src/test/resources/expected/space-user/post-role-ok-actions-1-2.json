@@ -1,0 +1,20 @@
+{
+  "id": {{roleId}},
+  "actions": [
+    {
+      "id": 1,
+      "code": "WRITE",
+      "name": "Редактировать спейс",
+      "resource": "space",
+      "attributes": []
+    },
+    {
+      "id": 2,
+      "code": "DELETE",
+      "name": "Удалять спейс",
+      "resource": "space",
+      "attributes": []
+    }
+  ]
+}
+

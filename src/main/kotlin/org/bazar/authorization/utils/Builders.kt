@@ -1,10 +1,10 @@
 package org.bazar.authorization.utils
 
-import org.bazar.authorization.database.entity.RoleEntity
-import org.bazar.authorization.database.entity.RolesActionsEntity
-import org.bazar.authorization.database.entity.SpaceUserEntity
+import org.bazar.authorization.database.entity.*
 import org.bazar.authorization.database.entity.enums.RoleScope
 import org.bazar.authorization.model.authz.AuthorizationRequest
+import org.bazar.authorization.model.rest.response.GetActionsResponse
+import org.bazar.authorization.utils.extensions.toGetActionDto
 import java.util.*
 
 fun buildSpaceUser(spaceId: Long, userId: UUID, roleId: Long, creator: Boolean): SpaceUserEntity {
@@ -33,10 +33,10 @@ fun buildRole(scope: RoleScope, name: String? = null, spaceId: Long? = null): Ro
 }
 
 fun buildAuthorizationRequest(
-    roleActionMapping: RolesActionsEntity,
     spaceUser: SpaceUserEntity,
     resource: String,
-    action: String
+    action: String,
+    attributes: Map<String, String>? = null
 ): AuthorizationRequest {
     return AuthorizationRequest(
         spaceUser.spaceId,
@@ -44,6 +44,13 @@ fun buildAuthorizationRequest(
         spaceUser.creator,
         resource,
         action,
-        roleActionMapping.assignedAttribute
+        attributes
     )
+}
+
+fun buildGetActionsResponse(actions: List<ActionEntity>, attributes: List<ActionAttributeEntity>): GetActionsResponse {
+    val actionsDto = actions.map { action ->
+        action.toGetActionDto(attributes.filter { it.actionId == action.id })
+    }
+    return GetActionsResponse(actionsDto)
 }

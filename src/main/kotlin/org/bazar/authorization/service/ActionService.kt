@@ -16,4 +16,12 @@ class ActionService(
                 ?: throw ApiException(ApiExceptions.NO_SUCH_ACTION, actionCode)
         }
 
+    suspend fun findAllByIds(ids: List<Int>) = suspendTransaction {
+        actionRepository.findAllByIds(ids)
+    }
+
+    suspend fun getAllActions() = suspendTransaction {
+        actionRepository.getAllActions()
+    }
+
 }

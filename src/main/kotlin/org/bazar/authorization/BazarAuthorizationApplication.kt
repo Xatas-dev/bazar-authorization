@@ -1,6 +1,11 @@
 package org.bazar.authorization
 
+import com.auth0.jwt.exceptions.JWTVerificationException
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
 import org.bazar.authorization.plugins.*
 import org.bazar.authorization.plugins.database.configureDatabase
 
@@ -14,5 +19,9 @@ fun Application.module() {
     configureDatabase()
     configureGrpcServer()
     configureContentNegotiations()
-    configureMonitoring()
+//    configureMonitoring()
+    configureSecurity()
+    configureRoutes()
+    configureStatusPages()
+    configureOpenApiGenerator()
 }

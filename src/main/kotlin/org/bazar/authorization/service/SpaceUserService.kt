@@ -5,6 +5,7 @@ import org.bazar.authorization.database.repository.SpaceUserRepository
 import org.bazar.authorization.utils.buildSpaceUser
 import org.bazar.authorization.utils.exceptions.ApiException
 import org.bazar.authorization.utils.exceptions.ApiExceptions
+import org.bazar.authorization.utils.exceptions.ApiExceptions.NO_SUCH_USER_IN_SPACE
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import java.util.*
 
@@ -20,9 +21,9 @@ class SpaceUserService(
         spaceUserRepository.findAllRoleIds(spaceId)
     }
 
-    suspend fun getOrThrow(spaceId: Long, userId: UUID): SpaceUserEntity = suspendTransaction {
+    suspend fun getSpaceUser(spaceId: Long, userId: UUID): SpaceUserEntity = suspendTransaction {
         spaceUserRepository.findRoleIdBySpaceIdAndUserId(spaceId, userId)
-            ?: throw ApiException(ApiExceptions.NO_SUCH_USER_IN_SPACE, "spaceId: $spaceId, userId: $userId")
+            ?: throw ApiException(NO_SUCH_USER_IN_SPACE, "spaceId: $spaceId, userId: $userId")
     }
 
     suspend fun getOrNull(spaceId: Long, userId: UUID): SpaceUserEntity? = suspendTransaction {
@@ -33,9 +34,17 @@ class SpaceUserService(
         val entityToSave = buildSpaceUser(spaceId, userId, roleId, creator)
 
         spaceUserRepository.findRoleIdBySpaceIdAndUserId(entityToSave.spaceId, entityToSave.userId)
-            ?.let { throw ApiException(ApiExceptions.ALREADY_EXISTS) }
+            ?.let { throw ApiException(ApiExceptions.USER_ALREADY_EXISTS) }
             ?: spaceUserRepository.save(entityToSave)
 
+    }
+
+    suspend fun assignRoleToUser(userId: UUID, spaceId: Long, roleId: Long) = suspendTransaction {
+        val existingUser = spaceUserRepository.findRoleIdBySpaceIdAndUserId(spaceId, userId)
+            ?: throw ApiException(NO_SUCH_USER_IN_SPACE, "userId: $userId, spaceId: $spaceId")
+
+        existingUser.roleId = roleId
+        spaceUserRepository.save(existingUser)
     }
 
     suspend fun deleteSpaceUser(spaceId: Long, userId: UUID) = suspendTransaction {

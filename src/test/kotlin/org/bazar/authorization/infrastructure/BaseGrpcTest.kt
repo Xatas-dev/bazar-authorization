@@ -62,35 +62,6 @@ abstract class BaseGrpcTest : BaseIntegrationTest() {
 
     }
 
-    protected fun createSpaceUser(spaceId: Long, userId: UUID, roleId: Long, creator: Boolean) = transaction {
-        spaceUserRepository.save(buildSpaceUser(spaceId, userId, roleId, creator))
-    }
-
-    protected fun createRolesActions(roleId: Long, actionId: Int) = transaction {
-        rolesActionsRepository.save(buildRolesActions(roleId, actionId))
-    }
-
-
-    protected fun getAllActions() = transaction {
-        actionsRepository.getAllActions()
-    }
-
-    protected fun getActionId(code: String, resource: String) = transaction {
-        actionsRepository.findByCodeAndResource(code, resource)!!.id
-    }
-
-    protected fun createRole(): Long = transaction {
-        roleRepository.save(buildRole(RoleScope.USER)).id!!
-    }
-
-    protected fun getAllSpaceUsers(spaceId: Long): List<SpaceUserEntity> {
-        return transaction {
-            SpaceUsers.selectAll()
-                .where { SpaceUsers.spaceId eq spaceId }
-                .map { it.toSpaceUserEntity() }
-        }
-    }
-
     protected fun assertGrpcStatus(expected: Status, call: () -> Unit) {
         val error = assertThrows<StatusRuntimeException>(call)
         assertThat(error.status.code).isEqualTo(expected.code)

@@ -1,7 +1,7 @@
 import com.google.protobuf.gradle.id
 
 plugins {
-    kotlin("jvm") version "2.3.0"
+    kotlin("jvm") version "2.3.10"
     id("io.ktor.plugin") version "3.4.0"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.3.0"
     id("com.google.protobuf") version "0.9.5" // For gRPC
@@ -11,7 +11,6 @@ group = "org.bazar"
 version = "1.0.1"
 
 val ktorVersion = "3.4.0"
-val kotlinVersion = "2.3.0"
 val exposedVersion = "1.2.0"
 val logbackVersion = "1.5.13"
 val hikariCpVersion = "7.0.2"
@@ -31,6 +30,7 @@ val cerbosSdkVersion = "0.16.0"
 val testContainersVersion = "2.0.3"
 val testContainersPostgresqlVersion = "1.21.3"
 val liquibaseTestVersion = "5.0.1"
+val swaggerGeneratorVersion = "1.0.36"
 
 application {
     mainClass = "org.bazar.authorization.BazarAuthorizationApplicationKt"
@@ -53,6 +53,9 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm")
     implementation("io.ktor:ktor-server-metrics-micrometer-jvm")
     implementation("io.ktor:ktor-server-config-yaml:${configYamlVersion}")
+    implementation("io.ktor:ktor-server-routing-openapi:${ktorVersion}")
+    implementation("io.ktor:ktor-server-auth:${ktorVersion}")
+    implementation("io.ktor:ktor-server-status-pages:${ktorVersion}")
     // Logging
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
 
@@ -96,6 +99,14 @@ dependencies {
     testImplementation("io.grpc:grpc-inprocess:$grpcNettyVersion")
     testImplementation("org.assertj:assertj-core:3.27.3")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.12.0")
+}
+
+ktor {
+    openApi {
+        enabled = true
+        codeInferenceEnabled = true
+        onlyCommented = false
+    }
 }
 
 protobuf {

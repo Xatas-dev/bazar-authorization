@@ -4,7 +4,7 @@ import java.time.Instant
 
 data class ActionAttributeEntity(
     val id: Int,
-    val actionId: Long,
+    val actionId: Int,
     val name: String,
     val displayName: String,
     val valueType: String,

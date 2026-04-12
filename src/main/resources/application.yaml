@@ -18,6 +18,7 @@ auth:
   issuer: ${KC_ISSUER_URL:http://localhost:9999/realms/bazar-realm}
   jwkUrl: ${KC_JWK_URL:http://localhost:9999/realms/bazar-realm/protocol/openid-connect/certs}
   realm: "bazar-realm"
+  audience: ${KC_AUDIENCE:bazar-authorization}
 
 cerbos:
   url: ${CERBOS_URL:localhost:3593}

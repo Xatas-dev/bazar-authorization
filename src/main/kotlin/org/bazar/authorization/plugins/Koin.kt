@@ -16,7 +16,8 @@ fun Application.configureKoin(appConfig: AppConfig) {
             repositoryModule(),
             serviceModule(),
             cerbosModule(),
-            databaseModule()
+            databaseModule(),
+            controllerModule()
         )
     }
 }
