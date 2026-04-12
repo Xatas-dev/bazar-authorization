@@ -1,16 +1,14 @@
 package org.bazar.authorization.database.entity
 
-import org.jetbrains.exposed.v1.core.dao.id.EntityID
-import org.jetbrains.exposed.v1.dao.LongEntity
-import org.jetbrains.exposed.v1.dao.LongEntityClass
+import java.time.Instant
+import java.util.*
 
-class SpaceUserEntity(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<SpaceUserEntity>(SpaceUsers)
-
-    var spaceId by SpaceUsers.spaceId
-    var userId by SpaceUsers.userId
-    val role by RoleEntity referencedOn SpaceUsers.role
-    var creator by SpaceUsers.creator
-    var createdAt by SpaceUsers.createdAt
-    var updatedAt by SpaceUsers.updatedAt
-}
+data class SpaceUserEntity(
+    val spaceId: Long,
+    val userId: UUID,
+    var roleId: Long,
+    val creator: Boolean,
+    val id: Long? = null,
+    val createdAt: Instant = Instant.now(),
+    var updatedAt: Instant = Instant.now()
+)

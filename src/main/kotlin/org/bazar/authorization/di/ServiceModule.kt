@@ -1,10 +1,12 @@
 package org.bazar.authorization.di
 
-import org.bazar.authorization.service.CerbosAccessService
-import org.bazar.authorization.service.UserSpaceRoleService
+import org.bazar.authorization.service.*
 import org.koin.dsl.module
 
 fun serviceModule() = module {
-    single { UserSpaceRoleService(get()) }
-    single { CerbosAccessService(get(), get()) }
+    single { CerbosAccessService(get()) }
+    single { ActionService(get()) }
+    single { AuthorizationService(get(), get(), get(), get()) }
+    single { RoleService(get(), get()) }
+    single { SpaceUserService(get()) }
 }

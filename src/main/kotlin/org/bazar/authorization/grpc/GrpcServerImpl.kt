@@ -19,17 +19,15 @@ class GrpcServerImpl(
 
     private val logger: Logger = logger()
 
-    private lateinit var server: Server
+    private val server: Server
     private val healthStatusManager = HealthStatusManager()
 
+    init {
+        server = initServer()
+    }
+
     fun start() {
-        server = ServerBuilder.forPort(port)
-            .apply { interceptors.forEach { intercept(it) } }
-            .apply { services.forEach { addService(it) } }
-            .addService(ProtoReflectionServiceV1.newInstance())
-            .addService(healthStatusManager.healthService)
-            .build()
-            .start()
+        server.start()
 
         setServingStatus(HealthCheckResponse.ServingStatus.SERVING)
 
@@ -37,23 +35,21 @@ class GrpcServerImpl(
     }
 
     fun stop() {
-        if (::server.isInitialized) {
-            // Mark as NOT_SERVING before shutting down (lets load balancers drain)
-            setServingStatus(HealthCheckResponse.ServingStatus.NOT_SERVING)
+        // Mark as NOT_SERVING before shutting down (lets load balancers drain)
+        setServingStatus(HealthCheckResponse.ServingStatus.NOT_SERVING)
 
-            server.shutdown()
-            try {
-                if (!server.awaitTermination(10, TimeUnit.SECONDS)) {
-                    logger.warn("gRPC Server didn't terminate gracefully, forcing shutdown")
-                    server.shutdownNow()
-                    server.awaitTermination(5, TimeUnit.SECONDS)
-                }
-            } catch (e: InterruptedException) {
+        server.shutdown()
+        try {
+            if (!server.awaitTermination(10, TimeUnit.SECONDS)) {
+                logger.warn("gRPC Server didn't terminate gracefully, forcing shutdown")
                 server.shutdownNow()
-                Thread.currentThread().interrupt()
+                server.awaitTermination(5, TimeUnit.SECONDS)
             }
-            logger.info("gRPC Server stopped.")
+        } catch (e: InterruptedException) {
+            server.shutdownNow()
+            Thread.currentThread().interrupt()
         }
+        logger.info("gRPC Server stopped.")
     }
 
     private fun setServingStatus(status: HealthCheckResponse.ServingStatus) {
@@ -62,5 +58,14 @@ class GrpcServerImpl(
             val serviceName = service.bindService().serviceDescriptor.name
             healthStatusManager.setStatus(serviceName, status)
         }
+    }
+
+    private fun initServer(): Server {
+        return ServerBuilder.forPort(port)
+            .apply { interceptors.forEach { intercept(it) } }
+            .apply { services.forEach { addService(it) } }
+            .addService(ProtoReflectionServiceV1.newInstance())
+            .addService(healthStatusManager.healthService)
+            .build()
     }
 }

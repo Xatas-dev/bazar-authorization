@@ -11,6 +11,8 @@ db:
   jdbcUrl: ${DB_URL:jdbc:postgresql://localhost:5432/bzrauthz}
   user: "postgres"
   password: "postgres"
+  logSqlQueries: false
+  runMigrations: true
 
 auth:
   issuer: ${KC_ISSUER_URL:http://localhost:9999/realms/bazar-realm}

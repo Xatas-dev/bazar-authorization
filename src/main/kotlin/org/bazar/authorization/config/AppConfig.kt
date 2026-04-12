@@ -1,6 +1,5 @@
 package org.bazar.authorization.config
 
-import io.ktor.server.config.*
 import org.bazar.authorization.utils.Profile
 
 data class AppConfig(
@@ -12,8 +11,15 @@ data class AppConfig(
     val logging: LoggingConfig
 )
 
-data class LoggingConfig(val level: Map<String, String> = emptyMap())
-data class DatabaseConfig(val jdbcUrl: String, val user: String, val password: String)
-data class AuthConfig(val issuer: String, val jwkUrl: String)
-data class GrpcConfig(val port: Int)
-data class CerbosConfig(val url: String)
+data class LoggingConfig(var level: Map<String, String> = emptyMap())
+data class DatabaseConfig(
+    var jdbcUrl: String,
+    var user: String,
+    var password: String,
+    var logSqlQueries: Boolean,
+    var runMigrations: Boolean
+)
+
+data class AuthConfig(var issuer: String, var jwkUrl: String)
+data class GrpcConfig(var port: Int)
+data class CerbosConfig(var url: String)

@@ -1,146 +1,258 @@
 package org.bazar.authorization.service
 
 import io.grpc.Status
-import io.grpc.StatusRuntimeException
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.groups.Tuple
-import org.bazar.authorization.database.entity.UserSpaceRole
-import org.bazar.authorization.database.entity.enums.Role
-import org.bazar.authorization.database.repository.UserSpaceRoleRepository
-import org.bazar.authorization.grpc.AddUserToSpaceRequest
-import org.bazar.authorization.grpc.CreateSpaceRequest
-import org.bazar.authorization.grpc.GrpcSecurityContext
-import org.bazar.authorization.grpc.RemoveUserFromSpaceRequest
+import org.bazar.authorization.database.entity.enums.RoleScope
+import org.bazar.authorization.grpc.CreateUserRequest
+import org.bazar.authorization.grpc.DeleteSpaceRequest
+import org.bazar.authorization.grpc.DeleteUserRequest
 import org.bazar.authorization.infrastructure.BaseGrpcTest
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
+import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import org.koin.test.get
 import java.util.*
 
 class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
 
-    @Test
-    @DisplayName("Adding user to space should save user space role and return true")
-    @Disabled
-    fun addUserRoleToSpace_shouldSaveAndReturnTrue() = grpcTest {
-        //given
-        val userToBeAdded = UUID.randomUUID()
-        val userSpaceRoleRepository = get<UserSpaceRoleRepository>()
-        userSpaceRoleRepository.save(UserSpaceRole(spaceId = 2L, authenticatedUserId, Role.CREATOR))
-        //when
-        val response = adminStub.addUserToSpace(
-            AddUserToSpaceRequest.newBuilder().setSpaceId(2L).setUserId(userToBeAdded.toString())
-                .setRole(Role.MEMBER.name).build()
-        )
-        //then
-        val allUsers = userSpaceRoleRepository.findAll()
-        assertThat(allUsers)
-            .hasSize(2)
-            .extracting(UserSpaceRole::spaceId, UserSpaceRole::userId, UserSpaceRole::role)
-            .containsExactlyInAnyOrder(
-                Tuple(2L, authenticatedUserId, Role.CREATOR),
-                Tuple(2L, userToBeAdded, Role.MEMBER)
-            )
-
-        assertEquals(true, response.success)
+    companion object {
+        private const val CREATOR_ROLE_ID = 1L
+        private const val DEFAULT_USER_ROLE_ID = 2L
     }
 
     @Test
-    @DisplayName("should throw insufficient permissions for the action")
-    @Disabled
-    fun addUserRoleToSpace_shouldThrowInsufficientPermissions() = grpcTest {
+    @DisplayName("Should create user with default role = 'Лил непищик' when creator=false")
+    fun createUser_shouldCreateMember() = grpcTest {
         //given
-        val userToBeAdded = UUID.randomUUID()
-        val userSpaceRoleRepository = get<UserSpaceRoleRepository>()
-        userSpaceRoleRepository.save(UserSpaceRole(2L, authenticatedUserId, Role.MEMBER))
-        //when
-        val error = assertThrows<StatusRuntimeException> {
-            adminStub.addUserToSpace(
-                AddUserToSpaceRequest.newBuilder().setSpaceId(2L).setUserId(userToBeAdded.toString())
-                    .setRole(Role.MEMBER.name).build()
-            )
-        }
-        //then
-        assertThat(error.status.code).isEqualTo(Status.PERMISSION_DENIED.code)
-    }
+        val testSpaceId = randomSpaceId()
+        val userIdToAdd = UUID.randomUUID()
+        createSpaceUser(testSpaceId, authenticatedUserId, CREATOR_ROLE_ID, creator = true)
 
-    @Test
-    @DisplayName("Should send 400 status for empty request")
-    @Disabled
-    fun addUserRoleToSpace_whenRequestIsEmpty() = grpcTest {
-        assertThrows<StatusRuntimeException> {
-            adminStub.addUserToSpace(AddUserToSpaceRequest.newBuilder().build())
-        }.status == Status.INVALID_ARGUMENT
-    }
-
-    @Test
-    @DisplayName("should remove user role from space")
-    @Disabled
-    fun removeUserFromSpace_shouldReturnTrue() = grpcTest {
-        //given
-        val userToBeRemovedId = UUID.randomUUID()
-        val userSpaceRoleRepository = get<UserSpaceRoleRepository>()
-        userSpaceRoleRepository.save(UserSpaceRole(1L, authenticatedUserId, Role.CREATOR))
-        userSpaceRoleRepository.save(UserSpaceRole(1L, userToBeRemovedId, Role.MEMBER))
         //when
-        val response = adminStub.removeUserFromSpace(
-            RemoveUserFromSpaceRequest.newBuilder()
-                .setSpaceId(1L)
-                .setUserId(userToBeRemovedId.toString())
+        val response = adminStub.createUser(
+            CreateUserRequest.newBuilder()
+                .setSpaceId(testSpaceId)
+                .setUserId(userIdToAdd.toString())
+                .setCreator(false)
                 .build()
         )
-        val all = userSpaceRoleRepository.findAll()
-        assertTrue { response.success }
-        assertThat(all)
-            .hasSize(1)
-    }
 
-    @Test
-    @DisplayName("should throw when empty request message")
-    @Disabled
-    fun removeUserFromSpace_whenEmptyRequest() = grpcTest {
-        assertThrows<StatusRuntimeException> {
-            adminStub.removeUserFromSpace(RemoveUserFromSpaceRequest.newBuilder().build())
-        }.status == Status.INVALID_ARGUMENT
-    }
-
-    @Test
-    @DisplayName("should create an owner in a space")
-    @Disabled
-    fun createSpace_shouldCreateNewUserWithRoleCreator()= grpcTest {
-        //given
-        val userSpaceRoleRepository = get<UserSpaceRoleRepository>()
-        //when
-        val response = adminStub.createSpace(CreateSpaceRequest.newBuilder().setSpaceId(1L).build())
         //then
-        val allRolesInDb = userSpaceRoleRepository.findAll()
-        assertThat(allRolesInDb)
-            .hasSize(1)
-            .extracting(UserSpaceRole::spaceId, UserSpaceRole::userId, UserSpaceRole::role)
-            .containsExactlyInAnyOrder(
-                Tuple(1L, authenticatedUserId, Role.CREATOR)
-            )
-
-        assertEquals(true, response.success)
+        val spaceUsers = getAllSpaceUsers(testSpaceId)
+            .filter { it.userId == userIdToAdd }
+        assertThat(spaceUsers).hasSize(1)
+        val createdUser = spaceUsers.first()
+        assertThat(createdUser.spaceId).isEqualTo(testSpaceId)
+        assertThat(createdUser.creator).isFalse
+        assertThat(createdUser.roleId).isEqualTo(DEFAULT_USER_ROLE_ID)
+        assertThat(response.success).isTrue
     }
 
     @Test
-    @DisplayName("should throw if creator already exists")
-    @Disabled
-    fun createSpace_shouldThrowIfCreatorExists()= grpcTest {
+    @DisplayName("Should create user with creator = true with role = 'Создатель'")
+    fun createUser_shouldCreateCreator() = grpcTest {
         //given
-        val userSpaceRoleRepository = get<UserSpaceRoleRepository>()
-        userSpaceRoleRepository.save(UserSpaceRole(1L, authenticatedUserId, Role.CREATOR))
+        val spaceId = randomSpaceId()
+        val userIdToAdd = UUID.randomUUID()
+
         //when
-        val error = assertThrows<StatusRuntimeException> {
-            adminStub.createSpace(CreateSpaceRequest.newBuilder().setSpaceId(1L).build())
+        val response = adminStub.createUser(
+            CreateUserRequest.newBuilder()
+                .setSpaceId(spaceId)
+                .setUserId(userIdToAdd.toString())
+                .setCreator(true)
+                .build()
+        )
+
+        //then
+        assertThat(response.success).isTrue
+        val createdUsers = getAllSpaceUsers(spaceId)
+        assertThat(createdUsers).hasSize(1)
+        val createdUser = createdUsers.first()
+        assertThat(createdUser.roleId).isEqualTo(CREATOR_ROLE_ID)
+        assertThat(createdUser.spaceId).isEqualTo(spaceId)
+        assertThat(createdUser.creator).isTrue
+    }
+
+    @Test
+    @DisplayName("createUser should return INVALID_ARGUMENT for empty request")
+    fun createUser_whenRequestIsEmpty() = grpcTest {
+        assertGrpcStatus(Status.INVALID_ARGUMENT) {
+            adminStub.createUser(CreateUserRequest.newBuilder().build())
         }
-        //then
-        assertThat(error.status.code).isEqualTo(Status.INVALID_ARGUMENT.code)
     }
 
+    @Test
+    @DisplayName("createUser should return PERMISSION_DENIED when caller is not in space")
+    fun createUser_whenCallerIsNotInSpace() = grpcTest {
+        assertGrpcStatus(Status.PERMISSION_DENIED) {
+            adminStub.createUser(
+                CreateUserRequest.newBuilder()
+                    .setSpaceId(randomSpaceId())
+                    .setUserId(UUID.randomUUID().toString())
+                    .setCreator(false)
+                    .build()
+            )
+        }
+    }
+
+    @Test
+    @DisplayName("createUser should return PERMISSION_DENIED when caller has no ADD action")
+    fun createUser_whenCallerHasNoAddPermission() = grpcTest {
+        val spaceId = randomSpaceId()
+        val targetUserId = UUID.randomUUID()
+        createSpaceUser(spaceId, authenticatedUserId, createRole(), creator = false)
+
+        assertGrpcStatus(Status.PERMISSION_DENIED) {
+            adminStub.createUser(
+                CreateUserRequest.newBuilder()
+                    .setSpaceId(spaceId)
+                    .setUserId(targetUserId.toString())
+                    .setCreator(false)
+                    .build()
+            )
+        }
+    }
+
+    @Test
+    @DisplayName("createUser should return ALREADY_EXISTS when user is already in space")
+    fun createUser_whenUserAlreadyExists() = grpcTest {
+        val spaceId = randomSpaceId()
+        val targetUserId = UUID.randomUUID()
+        createSpaceUser(spaceId, authenticatedUserId, CREATOR_ROLE_ID, creator = true)
+        createSpaceUser(spaceId, targetUserId, DEFAULT_USER_ROLE_ID, creator = false)
+
+        assertGrpcStatus(Status.ALREADY_EXISTS) {
+            adminStub.createUser(
+                CreateUserRequest.newBuilder()
+                    .setSpaceId(spaceId)
+                    .setUserId(targetUserId.toString())
+                    .setCreator(false)
+                    .build()
+            )
+        }
+    }
+
+    @Test
+    @DisplayName("deleteUser should return PERMISSION_DENIED without DELETE permission")
+    fun deleteUser_whenCallerHasNoDeletePermission() = grpcTest {
+        val spaceId = randomSpaceId()
+        val targetUserId = UUID.randomUUID()
+        createSpaceUser(spaceId, authenticatedUserId, DEFAULT_USER_ROLE_ID, creator = false)
+        createSpaceUser(spaceId, targetUserId, DEFAULT_USER_ROLE_ID, creator = false)
+
+        assertGrpcStatus(Status.PERMISSION_DENIED) {
+            adminStub.deleteUser(
+                DeleteUserRequest.newBuilder()
+                    .setSpaceId(spaceId)
+                    .setUserId(targetUserId.toString())
+                    .build()
+            )
+        }
+    }
+
+    @Test
+    @DisplayName("deleteUser should return SUCCESS and delete user data and scope USER roles when target is in db")
+    fun deleteUser_whenTargetInDb_successAndDeletesData() = grpcTest {
+        val spaceId = randomSpaceId()
+        val targetUserId = UUID.randomUUID()
+        val customRoleId = createRole()
+
+        createSpaceUser(spaceId, authenticatedUserId, CREATOR_ROLE_ID, creator = true)
+        createSpaceUser(spaceId, targetUserId, customRoleId, creator = false)
+
+        val response = adminStub.deleteUser(
+            DeleteUserRequest.newBuilder()
+                .setSpaceId(spaceId)
+                .setUserId(targetUserId.toString())
+                .build()
+        )
+
+        assertThat(response.success).isTrue()
+
+        transaction {
+            val usersInDb = spaceUserRepository.findAll()
+            assertThat(usersInDb).noneMatch { it.userId == targetUserId && it.spaceId == spaceId }
+
+            val rolesInDb = roleRepository.getAllRoles()
+            assertThat(rolesInDb).noneMatch { it.id == customRoleId }
+        }
+    }
+
+    @Test
+    @DisplayName("deleteUser should return SUCCESS when target user not in database")
+    fun deleteUser_whenTargetNotInDb_success() = grpcTest {
+        val spaceId = randomSpaceId()
+        val targetUserId = UUID.randomUUID()
+
+        createSpaceUser(spaceId, authenticatedUserId, CREATOR_ROLE_ID, creator = true)
+
+        val response = adminStub.deleteUser(
+            DeleteUserRequest.newBuilder()
+                .setSpaceId(spaceId)
+                .setUserId(targetUserId.toString())
+                .build()
+        )
+
+        assertThat(response.success).isTrue()
+    }
+
+    @Test
+    @DisplayName("deleteSpace should delete all users, USER scoped roles and mappings")
+    fun deleteSpace_shouldDeleteSpaceUsersAndRoleData() = grpcTest {
+        //given
+        val spaceId = randomSpaceId()
+        val actionsInDb = getAllActions()
+        val customRoleId = createRole()
+        createRolesActions(customRoleId, actionsInDb.first().id)
+
+        createSpaceUser(spaceId, authenticatedUserId, roleId = CREATOR_ROLE_ID, creator = true)
+        createSpaceUser(spaceId, UUID.randomUUID(), roleId = customRoleId, creator = false)
+
+        val response = adminStub.deleteSpace(
+            DeleteSpaceRequest.newBuilder()
+                .setSpaceId(spaceId)
+                .build()
+        )
+
+        assertThat(response.success).isTrue
+        suspendTransaction {
+            val usersInDb = spaceUserRepository.findAll()
+            val rolesInDb = roleRepository.getAllRoles()
+            val roleIdsInDb = rolesInDb.map { it.id!! }
+            val roleActionMappingsInDb = rolesActionsRepository.getAllRoleActionMappings()
+
+            assertThat(usersInDb).hasSize(0)
+                .noneMatch { it.spaceId == spaceId }
+
+            assertThat(rolesInDb).isNotEmpty
+                .allMatch { it.scope == RoleScope.GLOBAL }
+
+            assertThat(roleActionMappingsInDb)
+                .allMatch { roleIdsInDb.contains(it.roleId) }
+        }
+    }
+
+    @Test
+    @DisplayName("deleteSpace should return INVALID_ARGUMENT for empty request")
+    fun deleteSpace_whenRequestIsEmpty() = grpcTest {
+        assertGrpcStatus(Status.INVALID_ARGUMENT) {
+            adminStub.deleteSpace(DeleteSpaceRequest.newBuilder().build())
+        }
+    }
+
+    @Test
+    @DisplayName("deleteSpace should return PERMISSION_DENIED without DELETE space permission")
+    fun deleteSpace_whenCallerHasNoDeleteSpacePermission() = grpcTest {
+        val spaceId = randomSpaceId()
+        createSpaceUser(spaceId, authenticatedUserId, DEFAULT_USER_ROLE_ID, creator = false)
+
+        assertGrpcStatus(Status.PERMISSION_DENIED) {
+            adminStub.deleteSpace(
+                DeleteSpaceRequest.newBuilder()
+                    .setSpaceId(spaceId)
+                    .build()
+            )
+        }
+    }
 }
