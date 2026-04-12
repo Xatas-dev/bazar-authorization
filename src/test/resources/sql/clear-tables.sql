@@ -1,5 +1,4 @@
 TRUNCATE TABLE
-    user_space_role,
     space_user
     CASCADE;
 
