@@ -1,7 +1,5 @@
 package org.bazar.authorization.infrastructure.config
 
-import dev.cerbos.sdk.CerbosBlockingClient
-import dev.cerbos.sdk.CerbosClientBuilder
 import dev.cerbos.sdk.CerbosContainer
 import org.bazar.authorization.utils.logger
 import org.testcontainers.containers.BindMode
@@ -22,18 +20,6 @@ object TestContainers {
     val cerbos: CerbosContainer = CerbosContainer()
         .withClasspathResourceMapping("cerbos/policies", "/policies", BindMode.READ_ONLY)
         .withLogConsumer(Slf4jLogConsumer(logger))
-
-    var cerbosBlockingClient: CerbosBlockingClient? = null
-
-    fun getCerbosClient(): CerbosBlockingClient {
-        if (cerbosBlockingClient == null) {
-            cerbosBlockingClient = CerbosClientBuilder(cerbos.target).withPlaintext().buildBlockingClient()
-            return cerbosBlockingClient!!
-        }
-
-        return cerbosBlockingClient!!
-    }
-
 
     init {
         Startables.deepStart(postgres, cerbos).join()

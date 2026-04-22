@@ -3,13 +3,8 @@ package org.bazar.authorization.plugins
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.LoggerContext
 import io.ktor.server.application.*
-import io.ktor.server.config.ApplicationConfig
-import org.bazar.authorization.config.AppConfig
-import org.bazar.authorization.config.AuthConfig
-import org.bazar.authorization.config.CerbosConfig
-import org.bazar.authorization.config.DatabaseConfig
-import org.bazar.authorization.config.GrpcConfig
-import org.bazar.authorization.config.LoggingConfig
+import io.ktor.server.config.*
+import org.bazar.authorization.config.*
 import org.bazar.authorization.utils.Profile
 import org.slf4j.LoggerFactory
 
@@ -28,7 +23,9 @@ private fun ApplicationConfig.toAppConfig(): AppConfig {
         db = DatabaseConfig(
             property("db.jdbcUrl").getString(),
             property("db.user").getString(),
-            property("db.password").getString()
+            property("db.password").getString(),
+            property("db.logSqlQueries").getAs<Boolean>(),
+            property("db.runMigrations").getAs<Boolean>()
         ),
         auth = AuthConfig(
             property("auth.issuer").getString(),

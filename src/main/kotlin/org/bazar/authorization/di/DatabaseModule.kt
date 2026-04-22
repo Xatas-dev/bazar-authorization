@@ -6,11 +6,12 @@ import org.bazar.authorization.config.AppConfig
 import org.bazar.authorization.config.DatabaseConfig
 import org.bazar.authorization.plugins.database.LiquibaseManager
 import org.koin.dsl.module
+import org.koin.dsl.onClose
 import javax.sql.DataSource
 
 fun databaseModule() = module {
-    single { createHikariDataSource(get<AppConfig>().db) }
-    single { LiquibaseManager(get())}
+    single { createHikariDataSource(get<AppConfig>().db) } onClose { it?.connection?.close() }
+    single { LiquibaseManager(get()) }
 }
 
 private fun createHikariDataSource(config: DatabaseConfig): DataSource {

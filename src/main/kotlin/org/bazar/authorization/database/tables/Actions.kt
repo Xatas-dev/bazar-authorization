@@ -1,7 +1,6 @@
-package org.bazar.authorization.database.entity
+package org.bazar.authorization.database.tables
 
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
-import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.javatime.timestamp
 
 object Actions : IntIdTable("action") {

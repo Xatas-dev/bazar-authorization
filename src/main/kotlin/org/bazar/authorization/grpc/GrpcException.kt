@@ -1,12 +1,6 @@
 package org.bazar.authorization.grpc
 
-import io.grpc.ForwardingServerCall
-import io.grpc.Metadata
-import io.grpc.ServerCall
-import io.grpc.ServerCallHandler
-import io.grpc.ServerInterceptor
-import io.grpc.Status
-import io.grpc.StatusException
+import io.grpc.*
 import io.netty.handler.codec.http.HttpResponseStatus
 import org.bazar.authorization.utils.exceptions.ApiException
 import org.bazar.authorization.utils.logger
@@ -65,8 +59,9 @@ class GrpcExceptionHandler {
             HttpResponseStatus.FORBIDDEN -> Status.PERMISSION_DENIED
             HttpResponseStatus.BAD_REQUEST -> Status.INVALID_ARGUMENT
             HttpResponseStatus.NOT_FOUND -> Status.NOT_FOUND
+            HttpResponseStatus.CONFLICT -> Status.ALREADY_EXISTS
             else -> Status.UNKNOWN
         }
-        return StatusException(status.withDescription(exception.getFullErrorMessage()))
+        return StatusException(status.withDescription(exception.message))
     }
 }

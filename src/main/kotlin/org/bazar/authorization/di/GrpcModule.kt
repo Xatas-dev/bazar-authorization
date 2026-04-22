@@ -1,5 +1,6 @@
 package org.bazar.authorization.di
 
+import io.grpc.BindableService
 import io.grpc.ServerInterceptor
 import org.bazar.authorization.config.AppConfig
 import org.bazar.authorization.grpc.*
@@ -8,9 +9,9 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 fun grpcModule() = module {
-    single { SpaceAuthorizationService(get(), get()) }
-    single {
-        SpaceAdminAuthorizationService(get(), get())
+    single<BindableService>(named("authGrpcService")) { SpaceAuthorizationService(get()) }
+    single<BindableService>(named("authAdminGrpcService")) {
+        SpaceAdminAuthorizationService(get(), get(), get())
     }
     single<ServerInterceptor>(named("auth")) {
         val appConfig: AppConfig = get()
@@ -22,4 +23,12 @@ fun grpcModule() = module {
     }
     single { GrpcExceptionHandler() }
     single<ServerInterceptor>(named("exceptionHandler")) { GrpcExceptionTranslatorInterceptor(get()) }
+
+    single {
+        GrpcServerImpl(
+            get<AppConfig>().grpc.port,
+            getAll(),
+            getAll<BindableService>()
+        )
+    }
 }

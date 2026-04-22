@@ -8,6 +8,8 @@ db:
   jdbcUrl: dummy
   user: dummy
   password: dummy
+  logSqlQueries: true
+  runMigrations: false
 auth:
   issuer: dummy
   jwkUrl: dummy

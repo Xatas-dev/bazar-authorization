@@ -1,4 +1,4 @@
-package org.bazar.authorization.database.entity
+package org.bazar.authorization.database.tables
 
 import org.bazar.authorization.database.entity.enums.RoleScope
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable

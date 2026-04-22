@@ -1,7 +1,6 @@
 package org.bazar.authorization.plugins.database
 
 import liquibase.Liquibase
-import liquibase.database.DatabaseFactory
 import liquibase.database.jvm.JdbcConnection
 import liquibase.resource.ClassLoaderResourceAccessor
 import org.slf4j.LoggerFactory
@@ -17,13 +16,10 @@ class LiquibaseManager(
         logger.info("Running Liquibase migrations...")
 
         dataSource.connection.use { connection ->
-            val database = DatabaseFactory.getInstance()
-                .findCorrectDatabaseImplementation(JdbcConnection(connection))
-
             Liquibase(
                 "db/changelog/changelog-master.yaml",
                 ClassLoaderResourceAccessor(),
-                database
+                JdbcConnection(connection)
             ).use { liquibase ->
                 liquibase.update("")
             }

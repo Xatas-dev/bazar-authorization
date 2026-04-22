@@ -1,34 +1,27 @@
 package org.bazar.authorization.service
 
 import dev.cerbos.sdk.CerbosBlockingClient
+import dev.cerbos.sdk.builders.AttributeValue
 import dev.cerbos.sdk.builders.Principal
 import dev.cerbos.sdk.builders.Resource
-import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
-import java.util.*
+import org.bazar.authorization.model.authz.AuthorizationRequest
 
 class CerbosAccessService(
-    private val cerbosClient: CerbosBlockingClient,
-    private val userSpaceRoleService: UserSpaceRoleService
+    private val cerbosClient: CerbosBlockingClient
 ) {
 
-    /**
-     * Checks access using Cerbos.
-     * Note: userSpaceRoleService.getUserRole likely queries the DB,
-     * so we use newSuspendedTransaction for safe coroutine execution.
-     */
-    suspend fun checkAccess(userId: UUID, spaceId: Long, action: String): Boolean {
-        // 1. Fetch user role (DB call)
-        val userRole = suspendTransaction {
-            userSpaceRoleService.getUserRole(userId, spaceId)
-        }
+    fun checkAccess(authorizationRequest: AuthorizationRequest): Boolean {
+        val attributes = authorizationRequest.attributes
+            ?.mapValues { AttributeValue.stringValue(it.value) }
+        val principal = Principal.newInstance(authorizationRequest.userId.toString(), "user")
+            .apply {
+                if (attributes != null)
+                    withAttributes(attributes)
+            }
+        val resource = Resource.newInstance(authorizationRequest.resource, authorizationRequest.spaceId.toString())
 
-        // 2. Query Cerbos
-        val result = cerbosClient.check(
-            Principal.newInstance(userId.toString(), userRole.name),
-            Resource.newInstance("space", spaceId.toString()), // Good practice to include resource ID
-            action
-        )
+        val result = cerbosClient.check(principal, resource, authorizationRequest.action)
 
-        return result.isAllowed(action)
+        return authorizationRequest.creator || result.isAllowed(authorizationRequest.action)
     }
 }
