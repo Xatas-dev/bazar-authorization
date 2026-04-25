@@ -17,7 +17,7 @@ RUN gradle dependencies --no-daemon || true
 # 2. Build the application
 COPY src ./src
 # installDist creates a directory with /bin and /lib (all jars)
-RUN gradle installDist --no-daemon -x test
+RUN gradle installDist --no-daemon
 
 # ==========================================
 # Stage 2: Create the Runtime Image
