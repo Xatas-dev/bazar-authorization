@@ -24,13 +24,13 @@ class AuthorizationService(
         userId: UUID,
         resource: String,
         action: String,
-        customAttributes: Map<String, String>? = null
+        customAttributes: Map<String, String> = emptyMap()
     ): Boolean {
         val existingAction = actionService.getActionByNameAndResourceOrThrow(action, resource)
         val spaceUserInDb = spaceUserService.getSpaceUser(spaceId, userId)
         val attributes =
             roleService.getRoleActionMappings(spaceUserInDb.roleId, existingAction.id)
-                .assignedAttributes?.plus(customAttributes ?: emptyMap()) ?: emptyMap()
+                .assignedAttributes?.plus(customAttributes) ?: emptyMap()
         val authzRequest = buildAuthorizationRequest(spaceUserInDb, resource, action, attributes)
 
         return cerbosAccessService.checkAccess(authzRequest)
@@ -43,7 +43,7 @@ class AuthorizationService(
         spaceId: Long,
         userId: UUID,
         permission: Permission,
-        customAttributes: Map<String, String>? = null
+        customAttributes: Map<String, String> = emptyMap()
     ): Boolean {
         return authorize(spaceId, userId, permission.resource, permission.action, customAttributes)
     }

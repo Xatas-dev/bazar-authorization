@@ -7,6 +7,8 @@ import org.bazar.authorization.service.ActionAttributeService
 import org.bazar.authorization.service.ActionService
 import org.bazar.authorization.service.RoleService
 import org.bazar.authorization.service.SpaceUserService
+import org.bazar.authorization.utils.exceptions.ApiException
+import org.bazar.authorization.utils.exceptions.ApiExceptions
 import org.bazar.authorization.utils.extensions.toGetSpaceUsersRoleResponse
 import org.bazar.authorization.utils.extensions.toUuid
 import org.bazar.authorization.utils.logger
@@ -54,7 +56,7 @@ class SpaceUserApiService(
         val actionsWithAttributes = request.actions.associate { actionReq ->
             val attrNameToValue = actionReq.attributes.mapNotNull { attr ->
                 attrIdToNameMap[attr.id]?.let { name -> name to attr.value }
-                    ?: run { logger.warn("Attribute ID ${attr.id} not found"); null }
+                    ?: throw ApiException(ApiExceptions.NO_SUCH_ATTRIBUTE, "id = ${attr.id}")
             }.toMap()
 
             actionReq.id to attrNameToValue

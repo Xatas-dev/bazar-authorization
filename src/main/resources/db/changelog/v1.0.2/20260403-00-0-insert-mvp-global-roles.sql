@@ -15,7 +15,8 @@ values (1, 1, null, now(), now()),
        (1, 5, null, now(), now()),
        (1, 6, null, now(), now()),
        (1, 7, null, now(), now()),
-       (1, 8, null, now(), now());
+       (1, 8, null, now(), now()),
+       (1, 9, null, now(), now());
 
 -- Lil
 insert into roles_actions (role_id, action_id, assigned_attribute, created_at, updated_at)

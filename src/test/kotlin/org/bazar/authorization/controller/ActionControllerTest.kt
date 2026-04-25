@@ -24,7 +24,7 @@ class ActionControllerTest : BaseWebTest() {
     fun userWithRoleThatCanAccessAllActions_shouldReturnOk() = webTest {
         val spaceId = randomSpaceId()
         initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = 1, false)
-
+        val expectedSize = initDataHelper.getAllActions().size
 
         val response = client.get("/api/v1/actions?spaceId=$spaceId") {
             header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
@@ -33,7 +33,7 @@ class ActionControllerTest : BaseWebTest() {
         assertEquals(HttpStatusCode.OK, response.status)
 
         val body = json.decodeFromString<GetActionsResponse>(response.bodyAsText())
-        assertEquals(8, body.actions.size)
+        assertEquals(expectedSize, body.actions.size)
     }
 
     @Test

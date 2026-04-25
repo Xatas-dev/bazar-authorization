@@ -19,5 +19,6 @@ enum class ApiExceptions(
     NO_SUCH_ROLE("No such role", HttpStatusCode.BadRequest, "Такой роли не сущестует"),
     INSUFFICIENT_PERMISSIONS("No permission to access this resource", HttpStatusCode.Forbidden, "Недостаточно прав"),
     USER_ALREADY_EXISTS("User already exists in space", HttpStatusCode.Conflict, "Такой пользователь уже есть"),
-    NO_SUCH_ACTION_IN_ROLE("No such action in role", HttpStatusCode.Forbidden, "Недостаточно прав")
+    NO_SUCH_ACTION_IN_ROLE("No such action in role", HttpStatusCode.Forbidden, "Недостаточно прав"),
+    NO_SUCH_ATTRIBUTE("No such attribute: ", HttpStatusCode.BadRequest, "Аттрибута не существует")
 }

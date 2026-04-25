@@ -20,7 +20,7 @@ fun Application.configureStatusPages() {
 
         exception<BadRequestException> { call, cause ->
             logger.error(cause.message, cause)
-            call.respond(status = HttpStatusCode.BadRequest, ErrorResponse(404, "Ошибка валидации"))
+            call.respond(status = HttpStatusCode.BadRequest, ErrorResponse(400, "Ошибка валидации"))
         }
 
         exception<Throwable> { call, cause ->

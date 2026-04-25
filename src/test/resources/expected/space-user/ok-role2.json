@@ -18,9 +18,9 @@
     },
     {
       "id": 5,
-      "code": "ADD",
-      "name": "Добавлять новых пользователей в спейс",
-      "resource": "space_user",
+      "code": "DELETE",
+      "name": "Удалять любые сообщения",
+      "resource": "chat_messages",
       "attributes": []
     }
   ]

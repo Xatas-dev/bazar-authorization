@@ -91,7 +91,7 @@ class SpaceUserControllerTest : BaseWebTest() {
         val requesterRoleId = initDataHelper.createRole()
         initDataHelper.createRolesActions(
             roleId = requesterRoleId,
-            actionId = 8,
+            actionId = 9,
             assignedAttributes = mapOf("grantable_actions" to "[1,2]")
         )
 
