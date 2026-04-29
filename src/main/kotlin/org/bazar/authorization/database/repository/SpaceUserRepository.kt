@@ -35,6 +35,7 @@ class SpaceUserRepository {
 
     fun save(entity: SpaceUserEntity) {
         SpaceUsers.upsert {
+            entity.id?.let { entityId -> it[id] = entityId }
             it[spaceId] = entity.spaceId
             it[userId] = entity.userId.toString()
             it[role] = entity.roleId

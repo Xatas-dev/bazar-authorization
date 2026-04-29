@@ -1,0 +1,28 @@
+{
+  "id": 2,
+  "name": "Лил непищик",
+  "actions": [
+    {
+      "id": 3,
+      "code": "READ",
+      "name": "Читать сообщения в чате",
+      "resource": "chat_messages",
+      "attributes": []
+    },
+    {
+      "id": 4,
+      "code": "WRITE",
+      "name": "Писать в чат",
+      "resource": "chat_messages",
+      "attributes": []
+    },
+    {
+      "id": 5,
+      "code": "DELETE",
+      "name": "Удалять любые сообщения",
+      "resource": "chat_messages",
+      "attributes": []
+    }
+  ]
+}
+

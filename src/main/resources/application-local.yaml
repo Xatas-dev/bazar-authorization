@@ -6,7 +6,7 @@ ktor:
       - org.bazar.authorization.BazarAuthorizationApplicationKt.module
 grpc:
   port: 9090
-profile: ${PROFILE:LOCAL}
+profile: ${PROFILE:PROD}
 db:
   jdbcUrl: ${DB_URL:jdbc:postgresql://localhost:5432/bzrauthz}
   user: "postgres"
@@ -22,8 +22,13 @@ cerbos:
   url: ${CERBOS_URL:localhost:3593}
 logging:
   level:
-    root: INFO
+    Exposed: DEBUG
+    Application: DEBUG
     org:
       bazar: DEBUG
     jetbrains:
       exposed: DEBUG
+    io:
+      ktor:
+        auth:
+          jwt: DEBUG

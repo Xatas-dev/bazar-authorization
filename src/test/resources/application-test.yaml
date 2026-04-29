@@ -14,6 +14,7 @@ auth:
   issuer: dummy
   jwkUrl: dummy
   realm: dummy
+  audience: dummy
 cerbos:
   url: dummy
 logging:

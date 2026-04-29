@@ -1,6 +1,6 @@
 ktor:
   deployment:
-    port: 8090
+    port: 8080
   application:
     modules:
       - org.bazar.authorization.BazarAuthorizationApplicationKt.module
@@ -9,8 +9,8 @@ grpc:
 profile: ${PROFILE:PROD}
 db:
   jdbcUrl: ${DB_URL:jdbc:postgresql://localhost:5432/bzrauthz}
-  user: "postgres"
-  password: "postgres"
+  username: ${DB_USER:postgres}
+  password: ${DB_PASS:postgres}
   logSqlQueries: false
   runMigrations: true
 
@@ -18,6 +18,7 @@ auth:
   issuer: ${KC_ISSUER_URL:http://localhost:9999/realms/bazar-realm}
   jwkUrl: ${KC_JWK_URL:http://localhost:9999/realms/bazar-realm/protocol/openid-connect/certs}
   realm: "bazar-realm"
+  audience: ${KC_AUDIENCE:bazar-authorization}
 
 cerbos:
   url: ${CERBOS_URL:localhost:3593}

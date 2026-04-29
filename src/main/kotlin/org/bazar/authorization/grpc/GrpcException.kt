@@ -1,6 +1,7 @@
 package org.bazar.authorization.grpc
 
 import io.grpc.*
+import io.ktor.http.HttpStatusCode
 import io.netty.handler.codec.http.HttpResponseStatus
 import org.bazar.authorization.utils.exceptions.ApiException
 import org.bazar.authorization.utils.logger
@@ -55,11 +56,11 @@ class GrpcExceptionHandler {
 
     private fun mapApiException(exception: ApiException): StatusException {
         val status = when (exception.exceptionType.httpStatus) {
-            HttpResponseStatus.UNAUTHORIZED -> Status.UNAUTHENTICATED
-            HttpResponseStatus.FORBIDDEN -> Status.PERMISSION_DENIED
-            HttpResponseStatus.BAD_REQUEST -> Status.INVALID_ARGUMENT
-            HttpResponseStatus.NOT_FOUND -> Status.NOT_FOUND
-            HttpResponseStatus.CONFLICT -> Status.ALREADY_EXISTS
+            HttpStatusCode.Unauthorized -> Status.UNAUTHENTICATED
+            HttpStatusCode.Forbidden -> Status.PERMISSION_DENIED
+            HttpStatusCode.BadRequest -> Status.INVALID_ARGUMENT
+            HttpStatusCode.NotFound -> Status.NOT_FOUND
+            HttpStatusCode.Conflict -> Status.ALREADY_EXISTS
             else -> Status.UNKNOWN
         }
         return StatusException(status.withDescription(exception.message))
