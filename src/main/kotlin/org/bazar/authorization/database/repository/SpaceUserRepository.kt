@@ -5,6 +5,7 @@ import org.bazar.authorization.database.tables.SpaceUsers
 import org.bazar.authorization.utils.extensions.toSpaceUserEntity
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -54,6 +55,12 @@ class SpaceUserRepository {
 
     fun findAll(): List<SpaceUserEntity> {
         return SpaceUsers.selectAll()
+            .map { it.toSpaceUserEntity() }
+    }
+
+    fun findAllBySpaceIdAndUserIdsIn(spaceId: Long, userIds: List<UUID>): List<SpaceUserEntity> {
+        return SpaceUsers.selectAll()
+            .where((SpaceUsers.spaceId eq spaceId) and (SpaceUsers.userId inList userIds.map { it.toString() } ))
             .map { it.toSpaceUserEntity() }
     }
 

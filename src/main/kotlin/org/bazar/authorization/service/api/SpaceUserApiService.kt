@@ -7,6 +7,7 @@ import org.bazar.authorization.service.ActionAttributeService
 import org.bazar.authorization.service.ActionService
 import org.bazar.authorization.service.RoleService
 import org.bazar.authorization.service.SpaceUserService
+import org.bazar.authorization.utils.buildGetRoleNamesResponse
 import org.bazar.authorization.utils.exceptions.ApiException
 import org.bazar.authorization.utils.exceptions.ApiExceptions
 import org.bazar.authorization.utils.extensions.toGetSpaceUsersRoleResponse
@@ -70,4 +71,22 @@ class SpaceUserApiService(
 
         newRole.toGetSpaceUsersRoleResponse(actions, attributeEntities)
     }
+
+    suspend fun getRoleNames(spaceId: Long, userIds: List<UUID>) = suspendTransaction {
+        val users = spaceUserService.getAllUsers(spaceId, userIds)
+        val roleIdToNameMap = roleService.getAllRolesByIds(users.map { it.roleId })
+            .associate { it.id!! to it.name }
+
+        val userIdToRoleNameMap = users.mapNotNull { user ->
+            roleIdToNameMap[user.roleId]?.let {
+                user.userId to it
+            } ?: run {
+                logger.warn("roleId=${user.roleId} not found for user ${user.userId}")
+                null
+            }
+        }.toMap()
+
+        buildGetRoleNamesResponse(userIdToRoleNameMap)
+    }
+
 }

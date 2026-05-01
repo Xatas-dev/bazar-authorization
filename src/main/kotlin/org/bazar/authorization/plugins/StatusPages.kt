@@ -24,6 +24,7 @@ fun Application.configureStatusPages() {
         }
 
         exception<Throwable> { call, cause ->
+            logger.error(cause.message, cause)
             call.respond(
                 HttpStatusCode.InternalServerError,
                 ErrorResponse(500, "Неизвестная ошибка на стороне сервера")

@@ -58,7 +58,7 @@ class InitDataHelper(
     }
 
     fun createRole(): Long = transaction {
-        roleRepository.save(buildRole(RoleScope.USER)).id!!
+        roleRepository.save(buildRole(RoleScope.USER, "Custom")).id!!
     }
 
     fun getAllSpaceUsers(spaceId: Long): List<SpaceUserEntity> {

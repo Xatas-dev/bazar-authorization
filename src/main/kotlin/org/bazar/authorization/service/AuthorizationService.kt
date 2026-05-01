@@ -48,4 +48,8 @@ class AuthorizationService(
         return authorize(spaceId, userId, permission.resource, permission.action, customAttributes)
     }
 
+    suspend fun checkIfUserInSpace(userId: UUID, spaceId: Long) {
+        spaceUserService.getSpaceUser(spaceId, userId)
+    }
+
 }

@@ -51,4 +51,8 @@ class SpaceUserService(
         spaceUserRepository.deleteSpaceUser(spaceId, userId)
     }
 
+    suspend fun getAllUsers(spaceId: Long, userIds: List<UUID>) = suspendTransaction {
+        spaceUserRepository.findAllBySpaceIdAndUserIdsIn(spaceId, userIds)
+    }
+
 }

@@ -4,6 +4,8 @@ import org.bazar.authorization.database.entity.*
 import org.bazar.authorization.database.entity.enums.RoleScope
 import org.bazar.authorization.model.authz.AuthorizationRequest
 import org.bazar.authorization.model.rest.response.GetActionsResponse
+import org.bazar.authorization.model.rest.response.GetRoleNameDto
+import org.bazar.authorization.model.rest.response.GetRoleNamesResponse
 import org.bazar.authorization.utils.extensions.toGetActionDto
 import java.util.*
 
@@ -24,7 +26,7 @@ fun buildRolesActions(roleId: Long, actionId: Int): RolesActionsEntity {
     )
 }
 
-fun buildRole(scope: RoleScope, name: String? = null, spaceId: Long? = null): RoleEntity {
+fun buildRole(scope: RoleScope, name: String, spaceId: Long? = null): RoleEntity {
     return RoleEntity(
         name = name,
         spaceId = spaceId,
@@ -54,3 +56,8 @@ fun buildGetActionsResponse(actions: List<ActionEntity>, attributes: List<Action
     }
     return GetActionsResponse(actionsDto)
 }
+
+fun buildGetRoleNamesResponse(userIdToRoleNameMap: Map<UUID, String>) =
+    GetRoleNamesResponse(
+        roles = userIdToRoleNameMap.map { GetRoleNameDto(it.value, it.key.toString()) }
+    )

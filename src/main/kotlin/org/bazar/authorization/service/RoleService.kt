@@ -7,6 +7,7 @@ import org.bazar.authorization.database.entity.SpaceUserEntity
 import org.bazar.authorization.database.entity.enums.RoleScope
 import org.bazar.authorization.database.repository.RoleRepository
 import org.bazar.authorization.database.repository.RolesActionsRepository
+import org.bazar.authorization.utils.buildRole
 import org.bazar.authorization.utils.exceptions.ApiException
 import org.bazar.authorization.utils.exceptions.ApiExceptions
 import org.bazar.authorization.utils.extensions.toRoleWithActionMappings
@@ -42,7 +43,7 @@ class RoleService(
     }
 
     suspend fun createUserScopedRole(actionsWithAttributes: Map<Int, Map<String, String>?>) = suspendTransaction {
-        val createdRole = roleRepository.save(RoleEntity(scope = RoleScope.USER))
+        val createdRole = roleRepository.save(buildRole(RoleScope.USER, "Custom"))
 
         val roleActionMappingsToCreate = actionsWithAttributes.map {
             RolesActionsEntity(
@@ -54,6 +55,10 @@ class RoleService(
 
         val createdRoleActionMappings = rolesActionsRepository.saveAll(roleActionMappingsToCreate)
         createdRole.toRoleWithActionMappings(createdRoleActionMappings)
+    }
+
+    suspend fun getAllRolesByIds(roleIds: Collection<Long>) = suspendTransaction {
+        roleRepository.getAllByRoleIdsIn(roleIds.distinct())
     }
 
 }
