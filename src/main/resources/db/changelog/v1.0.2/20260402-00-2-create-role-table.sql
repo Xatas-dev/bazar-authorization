@@ -4,7 +4,7 @@
 create table "role"
 (
     id         bigserial primary key,
-    name       varchar(255),
+    name       varchar(255)       not null,
     space_id   bigint,
     scope      varchar(50)        not null,
     created_at timestamptz        not null,

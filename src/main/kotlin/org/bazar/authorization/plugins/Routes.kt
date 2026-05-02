@@ -22,6 +22,7 @@ fun Application.configureRoutes() {
                 with(spaceUserController) {
                     getRole()
                     createRole()
+                    getRoleNames()
                 }
             }
         }

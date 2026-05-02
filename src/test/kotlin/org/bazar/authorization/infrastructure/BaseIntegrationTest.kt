@@ -2,6 +2,8 @@ package org.bazar.authorization.infrastructure
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.testing.*
@@ -37,6 +39,12 @@ abstract class BaseIntegrationTest : KoinTest {
     protected fun integrationTest(
         block: suspend ApplicationTestBuilder.() -> Unit
     ) = testApplication {
+
+        client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
 
         environment {
             config = ApplicationConfig("application-test.yaml")

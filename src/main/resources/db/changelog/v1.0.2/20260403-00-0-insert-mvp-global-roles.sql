@@ -6,6 +6,8 @@ insert into role (id, name, space_id, scope, created_at, updated_at)
 values (1, 'Создатель', null, 'GLOBAL', now(), now()),
        (2, 'Лил непищик', null, 'GLOBAL', now(), now());
 
+SELECT setval('role_id_seq', (SELECT MAX(id) FROM "role"));
+
 --Creator
 insert into roles_actions (role_id, action_id, assigned_attribute, created_at, updated_at)
 values (1, 1, null, now(), now()),

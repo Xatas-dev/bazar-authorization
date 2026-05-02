@@ -1,19 +1,16 @@
 package org.bazar.authorization.controller
 
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import org.bazar.authorization.infrastructure.BaseWebTest
+import org.bazar.authorization.model.rest.response.GetRoleNamesResponse
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import java.util.UUID
+import java.util.*
 import kotlin.test.assertEquals
 
 class SpaceUserControllerTest : BaseWebTest() {
@@ -137,6 +134,64 @@ class SpaceUserControllerTest : BaseWebTest() {
 
         val expected = loadExpectedJson("/expected/space-user/post-role-forbidden-actions-1-2-3.json")
         assertJsonEquals(expected, response.bodyAsText())
+    }
+
+    @Test
+    @DisplayName("Requester is space participant, GET /space-users/role-names should return expected OK response")
+    fun getRoleNames_shouldReturnOk() = webTest {
+        //given
+        val spaceId = randomSpaceId()
+        val userIds = List(5) { UUID.randomUUID() }
+        val roleIds = List(3) { initDataHelper.createRole() }
+
+        val userIdToRoleIdMap = userIds.mapIndexed { index, userId ->
+            userId to roleIds.getOrElse(index) {2L}
+        }.toMap()
+
+        userIdToRoleIdMap.forEach {
+            initDataHelper.createSpaceUser(spaceId, it.key, it.value, false)
+        }
+
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, 1L, true)
+
+        //when
+        val response = client.get("/api/v1/space-users/role-names") {
+            header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            parameter("spaceId", spaceId)
+            userIds.forEach { userId -> parameter("userIds", userId) }
+        }
+        //then
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(5, response.body<GetRoleNamesResponse>().roles.size)
+    }
+
+    @Test
+    @DisplayName("Requester is NOT space participant, GET /space-users/role-names should return 403")
+    fun getRoleNames_shouldReturnForbidden() = webTest {
+        //given
+        val spaceId = randomSpaceId()
+        val userIds = List(5) { UUID.randomUUID() }
+        val roleIds = List(3) { initDataHelper.createRole() }
+
+        val userIdToRoleIdMap = userIds.mapIndexed { index, userId ->
+            userId to roleIds.getOrElse(index) {2L}
+        }.toMap()
+
+        userIdToRoleIdMap.forEach {
+            initDataHelper.createSpaceUser(spaceId, it.key, it.value, false)
+        }
+
+
+        //when
+        val response = client.get("/api/v1/space-users/role-names") {
+            header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            parameter("spaceId", spaceId)
+            userIds.forEach { userId -> parameter("userIds", userId) }
+        }
+        //then
+        assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 
     private fun createRoleRequestJson(userId: UUID, spaceId: Long, actionIds: List<Int>): String {

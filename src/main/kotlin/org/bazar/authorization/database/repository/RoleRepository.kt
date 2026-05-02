@@ -34,6 +34,12 @@ class RoleRepository {
             .map { it.toRoleEntity() }
     }
 
+    fun getAllByRoleIdsIn(roleIds: Collection<Long>): List<RoleEntity> {
+        return Roles.selectAll()
+            .where { Roles.id inList roleIds }
+            .map { it.toRoleEntity() }
+    }
+
     fun getAllRoles(): List<RoleEntity> {
         return Roles.selectAll()
             .map { it.toRoleEntity() }

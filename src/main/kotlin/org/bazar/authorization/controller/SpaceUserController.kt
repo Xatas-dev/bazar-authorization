@@ -15,6 +15,7 @@ import org.bazar.authorization.utils.exceptions.ApiExceptions
 import org.bazar.authorization.utils.extensions.extractActionsToGrant
 import org.bazar.authorization.utils.extensions.getAuthenticatedUserId
 import org.bazar.authorization.utils.extensions.toUuid
+import java.util.UUID
 
 class SpaceUserController(
     private val authorizationService: AuthorizationService,
@@ -34,6 +35,18 @@ class SpaceUserController(
 
         call.respond(
             spaceUserApiService.getRoleWithActionsAndAttributes(spaceId, userId)
+        )
+    }
+
+    fun Route.getRoleNames() = get("/space-users/role-names") {
+        val userIds = call.queryParameters.getOrFail<List<UUID>>("userIds")
+        val spaceId = call.queryParameters.getOrFail<Long>("spaceId")
+        val requesterId = call.getAuthenticatedUserId()
+
+        authorizationService.checkIfUserInSpace(requesterId, spaceId)
+
+        call.respond(
+            spaceUserApiService.getRoleNames(spaceId, userIds)
         )
     }
 

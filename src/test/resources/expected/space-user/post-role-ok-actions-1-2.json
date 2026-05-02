@@ -1,5 +1,6 @@
 {
   "id": {{roleId}},
+  "name": "Custom",
   "actions": [
     {
       "id": 1,

@@ -21,6 +21,6 @@ logging:
   level:
     root: INFO
     org:
-      bazar: ERROR
+      bazar: DEBUG
     jetbrains:
       exposed: DEBUG
