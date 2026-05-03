@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "org.bazar"
-version = "1.0.1"
+version = "1.0.2"
 
 val ktorVersion = "3.4.0"
 val exposedVersion = "1.2.0"
