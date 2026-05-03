@@ -17,10 +17,10 @@
       "attributes": []
     },
     {
-      "id": 5,
-      "code": "DELETE",
-      "name": "Удалять любые сообщения",
-      "resource": "chat_messages",
+      "id": 6,
+      "code": "ADD",
+      "name": "Добавлять новых пользователей в спейс",
+      "resource": "space_user",
       "attributes": []
     }
   ]
