@@ -24,4 +24,4 @@ values (1, 1, null, now(), now()),
 insert into roles_actions (role_id, action_id, assigned_attribute, created_at, updated_at)
 values (2, 3, null, now(), now()),
        (2, 4, null, now(), now()),
-       (2, 5, null, now(), now());
+       (2, 6, null, now(), now());
