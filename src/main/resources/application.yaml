@@ -9,7 +9,7 @@ grpc:
 profile: ${PROFILE:PROD}
 db:
   jdbcUrl: ${DB_URL:jdbc:postgresql://localhost:5432/bzrauthz}
-  username: ${DB_USER:postgres}
+  user: ${DB_USER:postgres}
   password: ${DB_PASS:postgres}
   logSqlQueries: false
   runMigrations: true
