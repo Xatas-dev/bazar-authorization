@@ -9,12 +9,11 @@ import org.bazar.authorization.model.rest.response.GetRoleNamesResponse
 import org.bazar.authorization.utils.extensions.toGetActionDto
 import java.util.*
 
-fun buildSpaceUser(spaceId: Long, userId: UUID, roleId: Long, creator: Boolean): SpaceUserEntity {
+fun buildSpaceUser(spaceId: Long, userId: UUID, roleId: Long): SpaceUserEntity {
     return SpaceUserEntity(
         spaceId = spaceId,
         userId = userId,
-        roleId = roleId,
-        creator = creator
+        roleId = roleId
     )
 }
 
@@ -38,15 +37,16 @@ fun buildAuthorizationRequest(
     spaceUser: SpaceUserEntity,
     resource: String,
     action: String,
-    attributes: Map<String, String>? = null
+    principalAttributes: Map<String, String> = emptyMap(),
+    resourceAttributes: Map<String, String> = emptyMap()
 ): AuthorizationRequest {
     return AuthorizationRequest(
         spaceUser.spaceId,
         spaceUser.userId,
-        spaceUser.creator,
         resource,
         action,
-        attributes
+        principalAttributes,
+        resourceAttributes
     )
 }
 

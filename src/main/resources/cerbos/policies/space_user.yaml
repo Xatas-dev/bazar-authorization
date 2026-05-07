@@ -13,3 +13,6 @@ resourcePolicy:
       effect: EFFECT_ALLOW
       roles:
         - user
+      condition:
+        match:
+          expr: "!has(R.attr.creator) || R.attr.creator == false"

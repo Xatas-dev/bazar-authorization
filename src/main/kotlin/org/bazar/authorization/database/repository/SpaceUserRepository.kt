@@ -40,7 +40,6 @@ class SpaceUserRepository {
             it[spaceId] = entity.spaceId
             it[userId] = entity.userId.toString()
             it[role] = entity.roleId
-            it[creator] = entity.creator
             it[createdAt] = entity.createdAt
             it[updatedAt] = entity.updatedAt
         }
@@ -60,7 +59,7 @@ class SpaceUserRepository {
 
     fun findAllBySpaceIdAndUserIdsIn(spaceId: Long, userIds: List<UUID>): List<SpaceUserEntity> {
         return SpaceUsers.selectAll()
-            .where((SpaceUsers.spaceId eq spaceId) and (SpaceUsers.userId inList userIds.map { it.toString() } ))
+            .where((SpaceUsers.spaceId eq spaceId) and (SpaceUsers.userId inList userIds.map { it.toString() }))
             .map { it.toSpaceUserEntity() }
     }
 

@@ -30,7 +30,7 @@ message DeleteSpaceResponse {
 message CreateUserRequest {
   string user_id = 1;
   int64 space_id = 2;
-  bool creator = 3;
+  bool is_creator = 3;
 }
 
 message CreateUserResponse {
@@ -40,6 +40,7 @@ message CreateUserResponse {
 message DeleteUserRequest {
   string user_id = 1;
   int64 space_id = 2;
+  bool is_creator = 3;
 }
 
 message DeleteUserResponse {

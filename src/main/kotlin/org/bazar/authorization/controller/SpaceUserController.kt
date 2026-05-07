@@ -1,6 +1,5 @@
 package org.bazar.authorization.controller
 
-import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -8,14 +7,12 @@ import io.ktor.server.util.*
 import org.bazar.authorization.model.rest.request.CreateRoleRequest
 import org.bazar.authorization.service.AuthorizationService
 import org.bazar.authorization.service.api.SpaceUserApiService
-import org.bazar.authorization.utils.authorization.enums.Permission.READ_ACTIONS
-import org.bazar.authorization.utils.authorization.enums.Permission.WRITE_ACTIONS
 import org.bazar.authorization.utils.exceptions.ApiException
 import org.bazar.authorization.utils.exceptions.ApiExceptions
 import org.bazar.authorization.utils.extensions.extractActionsToGrant
 import org.bazar.authorization.utils.extensions.getAuthenticatedUserId
 import org.bazar.authorization.utils.extensions.toUuid
-import java.util.UUID
+import java.util.*
 
 class SpaceUserController(
     private val authorizationService: AuthorizationService,
@@ -28,7 +25,7 @@ class SpaceUserController(
         val requesterId = call.getAuthenticatedUserId()
 
         if (userId != requesterId &&
-            !authorizationService.authorize(spaceId, requesterId, READ_ACTIONS)
+            !authorizationService.authorize(spaceId, requesterId, "space_user_actions", "READ")
         ) {
             throw ApiException(ApiExceptions.INSUFFICIENT_PERMISSIONS, "Denied for ${call.request.path()}")
         }
@@ -57,7 +54,8 @@ class SpaceUserController(
         if (!authorizationService.authorize(
                 request.spaceId,
                 requesterId,
-                WRITE_ACTIONS,
+                "space_user_actions",
+                "WRITE",
                 request.extractActionsToGrant()
             )
         ) {

@@ -6,7 +6,7 @@ ktor:
       - org.bazar.authorization.BazarAuthorizationApplicationKt.module
 grpc:
   port: 9090
-profile: ${PROFILE:PROD}
+profile: ${PROFILE:LOCAL}
 db:
   jdbcUrl: ${DB_URL:jdbc:postgresql://localhost:5432/bzrauthz}
   user: "postgres"
