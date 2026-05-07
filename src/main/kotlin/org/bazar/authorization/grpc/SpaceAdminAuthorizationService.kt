@@ -51,7 +51,7 @@ class SpaceAdminAuthorizationService(
         request.validate()
         val authenticatedUserId = GrpcSecurityContext.getUserId()
 
-        if (!request.creator && !authorizationService.authorize(
+        if (!request.isCreator && !authorizationService.authorize(
                 request.spaceId,
                 authenticatedUserId,
                 "space_user",
@@ -61,9 +61,9 @@ class SpaceAdminAuthorizationService(
             throw ApiException(ApiExceptions.INSUFFICIENT_PERMISSIONS)
         }
 
-        val roleId = if (request.creator) 1L else 2L
+        val roleId = if (request.isCreator) 1L else 2L
 
-        spaceUserService.saveOnConflictThrow(request.spaceId, request.userId.toUuid(), roleId, request.creator)
+        spaceUserService.saveOnConflictThrow(request.spaceId, request.userId.toUuid(), roleId)
 
         return CreateUserResponse.newBuilder().setSuccess(true).build()
     }
@@ -72,7 +72,14 @@ class SpaceAdminAuthorizationService(
         request.validate()
         val authenticatedUserId = GrpcSecurityContext.getUserId()
 
-        if (!authorizationService.authorize(request.spaceId, authenticatedUserId, "space_user", "DELETE")) {
+        if (!authorizationService.authorize(
+                request.spaceId,
+                authenticatedUserId,
+                "space_user",
+                "DELETE",
+                resourceAttributes = mapOf("creator" to request.isCreator.toString())
+            )
+        ) {
             throw ApiException(ApiExceptions.INSUFFICIENT_PERMISSIONS)
         }
 

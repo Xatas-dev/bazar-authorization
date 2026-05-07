@@ -1,6 +1,6 @@
 package org.bazar.authorization.service
 
-import org.bazar.authorization.utils.authorization.enums.Permission
+import org.bazar.authorization.grpc.AuthorizeRequest
 import org.bazar.authorization.utils.buildAuthorizationRequest
 import java.util.*
 
@@ -20,20 +20,16 @@ class AuthorizationService(
      * 4. Check authorization decision via cerbos
      */
     suspend fun authorize(
-        spaceId: Long,
-        userId: UUID,
-        resource: String,
-        action: String,
-        customAttributes: Map<String, String> = emptyMap()
+        request: AuthorizeRequest,
+        loggedInUserId: UUID
     ): Boolean {
-        val existingAction = actionService.getActionByNameAndResourceOrThrow(action, resource)
-        val spaceUserInDb = spaceUserService.getSpaceUser(spaceId, userId)
-        val attributes =
-            roleService.getRoleActionMappings(spaceUserInDb.roleId, existingAction.id)
-                .assignedAttributes?.plus(customAttributes) ?: emptyMap()
-        val authzRequest = buildAuthorizationRequest(spaceUserInDb, resource, action, attributes)
-
-        return cerbosAccessService.checkAccess(authzRequest)
+        return authorize(
+            request.spaceId,
+            loggedInUserId,
+            request.resource,
+            request.action,
+            request.principalAttributesList.associate { it.name to it.value },
+            request.resourceAttributesList.associate { it.name to it.value })
     }
 
     /*
@@ -41,11 +37,26 @@ class AuthorizationService(
      */
     suspend fun authorize(
         spaceId: Long,
-        userId: UUID,
-        permission: Permission,
-        customAttributes: Map<String, String> = emptyMap()
+        loggedInUserId: UUID,
+        resource: String,
+        action: String,
+        principalAttributes: Map<String, String> = emptyMap(),
+        resourceAttributes: Map<String, String> = emptyMap()
     ): Boolean {
-        return authorize(spaceId, userId, permission.resource, permission.action, customAttributes)
+
+        val existingAction = actionService.getActionByNameAndResourceOrThrow(action, resource)
+        val spaceUserInDb = spaceUserService.getSpaceUser(spaceId, loggedInUserId)
+
+        val enrichedPrincipalAttributes =
+            principalAttributes + (roleService.getRoleActionMappings(spaceUserInDb.roleId, existingAction.id)
+                .assignedAttributes ?: emptyMap())
+
+
+        val authzRequest =
+            buildAuthorizationRequest(spaceUserInDb, resource, action, enrichedPrincipalAttributes, resourceAttributes)
+
+        return cerbosAccessService.checkAccess(authzRequest)
+
     }
 
     suspend fun checkIfUserInSpace(userId: UUID, spaceId: Long) {

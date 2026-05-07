@@ -16,7 +16,10 @@ class SpaceAuthorizationService(
         val authenticatedUserId = GrpcSecurityContext.getUserId()
 
         val allowed =
-            authorizationService.authorize(request.spaceId, authenticatedUserId, request.resource, request.action)
+            authorizationService.authorize(
+                request,
+                authenticatedUserId
+            )
 
         return AuthorizeResponse.newBuilder()
             .setAllowed(allowed)

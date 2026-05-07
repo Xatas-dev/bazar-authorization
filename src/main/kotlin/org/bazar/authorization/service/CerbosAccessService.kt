@@ -11,18 +11,22 @@ class CerbosAccessService(
 ) {
 
     fun checkAccess(authorizationRequest: AuthorizationRequest): Boolean {
-        val attributes = authorizationRequest.attributes
-            ?.mapValues { toAttributeValue(it.value) }
+
+        val principalAttributes = authorizationRequest.principalAttributes
+            .mapValues { toAttributeValue(it.value) }
+        val resourceAttributes = authorizationRequest.resourceAttributes
+            .mapValues { toAttributeValue(it.value) }
+
         val principal = Principal.newInstance(authorizationRequest.userId.toString(), "user")
             .apply {
-                if (attributes != null)
-                    withAttributes(attributes)
+                withAttributes(principalAttributes)
             }
         val resource = Resource.newInstance(authorizationRequest.resource, authorizationRequest.spaceId.toString())
+            .apply { withAttributes(resourceAttributes) }
 
         val result = cerbosClient.check(principal, resource, authorizationRequest.action)
 
-        return authorizationRequest.creator || result.isAllowed(authorizationRequest.action)
+        return result.isAllowed(authorizationRequest.action)
     }
 
     private fun toAttributeValue(value: String): AttributeValue {

@@ -30,8 +30,8 @@ class SpaceUserService(
         spaceUserRepository.findRoleIdBySpaceIdAndUserId(spaceId, userId)
     }
 
-    suspend fun saveOnConflictThrow(spaceId: Long, userId: UUID, roleId: Long, creator: Boolean) = suspendTransaction {
-        val entityToSave = buildSpaceUser(spaceId, userId, roleId, creator)
+    suspend fun saveOnConflictThrow(spaceId: Long, userId: UUID, roleId: Long) = suspendTransaction {
+        val entityToSave = buildSpaceUser(spaceId, userId, roleId)
 
         spaceUserRepository.findRoleIdBySpaceIdAndUserId(entityToSave.spaceId, entityToSave.userId)
             ?.let { throw ApiException(ApiExceptions.USER_ALREADY_EXISTS) }

@@ -26,8 +26,8 @@ class InitDataHelper(
 
     ) : KoinTest {
 
-    fun createSpaceUser(spaceId: Long, userId: UUID, roleId: Long, creator: Boolean) = transaction {
-        spaceUserRepository.save(buildSpaceUser(spaceId, userId, roleId, creator))
+    fun createSpaceUser(spaceId: Long, userId: UUID, roleId: Long) = transaction {
+        spaceUserRepository.save(buildSpaceUser(spaceId, userId, roleId))
     }
 
     fun createRolesActions(roleId: Long, actionId: Int) = transaction {
@@ -51,10 +51,6 @@ class InitDataHelper(
 
     fun getAllActions() = transaction {
         actionRepository.getAllActions()
-    }
-
-    fun getActionId(code: String, resource: String) = transaction {
-        actionRepository.findByCodeAndResource(code, resource)!!.id
     }
 
     fun createRole(): Long = transaction {

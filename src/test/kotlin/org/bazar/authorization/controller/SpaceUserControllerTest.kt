@@ -26,8 +26,8 @@ class SpaceUserControllerTest : BaseWebTest() {
         val spaceId = randomSpaceId()
         val targetUserId = UUID.fromString("00000000-0000-0000-0000-000000000002")
 
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = 1, creator = false)
-        initDataHelper.createSpaceUser(spaceId, targetUserId, roleId = 2, creator = false)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = 1)
+        initDataHelper.createSpaceUser(spaceId, targetUserId, roleId = 2)
 
         val response = client.get("/api/v1/space-users/roles?spaceId=$spaceId&userId=$targetUserId") {
             header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
@@ -45,8 +45,8 @@ class SpaceUserControllerTest : BaseWebTest() {
         val spaceId = randomSpaceId()
         val targetUserId = UUID.fromString("00000000-0000-0000-0000-000000000003")
 
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = 2, creator = false)
-        initDataHelper.createSpaceUser(spaceId, targetUserId, roleId = 2, creator = false)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = 2)
+        initDataHelper.createSpaceUser(spaceId, targetUserId, roleId = 2)
 
         val response = client.get("/api/v1/space-users/roles?spaceId=$spaceId&userId=$targetUserId") {
             header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
@@ -65,8 +65,8 @@ class SpaceUserControllerTest : BaseWebTest() {
         val targetUserId = UUID.fromString("00000000-0000-0000-0000-000000000004")
         val customRoleId = initDataHelper.createRole()
 
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = 1, creator = false)
-        initDataHelper.createSpaceUser(spaceId, targetUserId, roleId = customRoleId, creator = false)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = 1)
+        initDataHelper.createSpaceUser(spaceId, targetUserId, roleId = customRoleId)
 
         val response = client.get("/api/v1/space-users/roles?spaceId=$spaceId&userId=$targetUserId") {
             header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
@@ -92,8 +92,8 @@ class SpaceUserControllerTest : BaseWebTest() {
             assignedAttributes = mapOf("grantable_actions" to "[1,2]")
         )
 
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = requesterRoleId, creator = false)
-        initDataHelper.createSpaceUser(spaceId, targetUserId, roleId = 2, creator = false)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = requesterRoleId)
+        initDataHelper.createSpaceUser(spaceId, targetUserId, roleId = 2)
 
         val response = client.post("/api/v1/space-users/roles") {
             header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
@@ -121,8 +121,8 @@ class SpaceUserControllerTest : BaseWebTest() {
             assignedAttributes = mapOf("grantable_actions" to "[1,2]")
         )
 
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = requesterRoleId, creator = false)
-        initDataHelper.createSpaceUser(spaceId, targetUserId, roleId = 2, creator = false)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = requesterRoleId)
+        initDataHelper.createSpaceUser(spaceId, targetUserId, roleId = 2)
 
         val response = client.post("/api/v1/space-users/roles") {
             header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
@@ -149,10 +149,10 @@ class SpaceUserControllerTest : BaseWebTest() {
         }.toMap()
 
         userIdToRoleIdMap.forEach {
-            initDataHelper.createSpaceUser(spaceId, it.key, it.value, false)
+            initDataHelper.createSpaceUser(spaceId, it.key, it.value)
         }
 
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, 1L, true)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, 1L)
 
         //when
         val response = client.get("/api/v1/space-users/role-names") {
@@ -179,7 +179,7 @@ class SpaceUserControllerTest : BaseWebTest() {
         }.toMap()
 
         userIdToRoleIdMap.forEach {
-            initDataHelper.createSpaceUser(spaceId, it.key, it.value, false)
+            initDataHelper.createSpaceUser(spaceId, it.key, it.value)
         }
 
 
