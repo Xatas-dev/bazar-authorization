@@ -8,6 +8,8 @@ object Roles : LongIdTable("role") {
     val name = varchar("name", length = 255)
     val spaceId = long("space_id").nullable()
     val scope = enumerationByName(name = "scope", length = 50, klass = RoleScope::class)
+    val isVisible = bool("is_visible")
+    val createdBy = varchar("created_by", length = 48)
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
 }
