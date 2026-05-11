@@ -16,19 +16,30 @@ class DefaultUserPrincipalAttributeExtractor(
     - actions specific attributes stored in user role_mappings
      */
     override suspend fun extract(context: AttributeExtractionContext): AttributeExtractionContext {
-        val requesterRoleMappings = roleService.getRoleActionMappings(context.authenticatedUser.roleId)
-        val requesterActions = actionService.findAllByIds(requesterRoleMappings.map { it.actionId })
-        val toBeAuthorizedAction =
-            requesterActions.first { it.resource == context.resource && it.code == context.action }
-        val actionSpecificAttributes = requesterRoleMappings.first { it.actionId == toBeAuthorizedAction.id }
+        val userId = context.authenticatedUser.userId.toString()
+        val roleId = context.authenticatedUser.roleId
+
+        val roleMappings = roleService.getRoleActionMappings(roleId)
+        val grantedActions = actionService.findAllByIds(roleMappings.map { it.actionId })
+
+        val allowedActionKeys = grantedActions.map { "${it.resource}:${it.code}" }
+
+        // 3. Ищем атрибуты (grantable_actions и т.д.), специфичные для ТЕКУЩЕГО запроса
+        val currentActionId = grantedActions
+            .find { it.resource == context.resource && it.code == context.action }
+            ?.id
+
+        val currentActionAttributes = currentActionId?.let {
+            roleMappings
+                .find { it.actionId == currentActionId }
+                ?.assignedAttributes
+        } ?: emptyMap()
 
         context.principalAttributes.apply {
-            put("user_id", context.authenticatedUser.userId.toString())
-            put("is_creator", context.authenticatedUser.userId.toString())
-            put("allowed_actions", requesterActions.map { it.resource + ":" + it.code }.toString())
-            actionSpecificAttributes.assignedAttributes?.let {
-                putAll(it)
-            }
+            put("user_id", userId)
+            put("allowed_actions", allowedActionKeys.toString())
+            put("is_creator", context.authenticatedUser.isCreator.toString())
+            putAll(currentActionAttributes) // Добавляем grantable_actions / manageable_roles
         }
 
         return context
