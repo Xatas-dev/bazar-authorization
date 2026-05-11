@@ -26,3 +26,7 @@ databaseChangeLog:
   - include:
       file: 20260417-00-0-create-unique-index-on-space-user-table.sql
       relativeToChangelogFile: true
+  - include:
+      file: 202604012-00-0-drop-deprecated-tables.sql
+      relativeToChangelogFile: true
+

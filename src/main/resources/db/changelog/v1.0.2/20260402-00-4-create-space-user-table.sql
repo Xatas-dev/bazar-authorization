@@ -7,6 +7,7 @@ create table space_user
     space_id   bigint             not null,
     user_id    varchar(255)       not null,
     role_id    bigint             not null references "role" (id),
+    is_creator boolean            not null,
     created_at timestamptz        not null,
     updated_at timestamptz        not null
 );
@@ -16,5 +17,6 @@ comment on column space_user.id is 'Space user row ID';
 comment on column space_user.space_id is 'Space ID';
 comment on column space_user.user_id is 'User identifier';
 comment on column space_user.role_id is 'Role ID';
+comment on column space_user.is_creator is 'Defines creator of the space';
 comment on column space_user.created_at is 'Insert timestamp';
 comment on column space_user.updated_at is 'Update timestamp';

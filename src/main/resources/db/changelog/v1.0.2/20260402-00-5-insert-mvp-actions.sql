@@ -10,6 +10,8 @@ values (1,'WRITE', 'Редактировать спейс', 'space', now(), now(
        (5, 'DELETE', 'Удалять любые сообщения', 'chat_messages', now(), now()),
        (6, 'ADD', 'Добавлять новых пользователей в спейс', 'space_user', now(), now()),
        (7, 'DELETE', 'Кикать пользователей из спейса', 'space_user', now(), now()),
-       (8, 'READ', 'Смотреть роли и права всех пользователей', 'space_user_actions', now(), now()),
-       (9, 'WRITE', 'Изменять роли и права других пользоваталей', 'space_user_actions', now(), now());
+       (8, 'READ', 'Чекать роли', 'roles', now(), now()),
+       (9, 'ASSIGN', 'Назначать роли', 'roles', now(), now()),
+       (10, 'EDIT', 'Редактировать существующие роли', 'roles', now(), now()),
+       (11, 'CREATE', 'Создавать роли', 'roles', now(), now());
 
