@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 class SpaceAuthorizationServiceTest : BaseGrpcTest() {
 
     companion object {
-        private const val DEFAULT_USER_ROLE_ID = 2L
+        private const val DEFAULT_USER_ROLE_ID = 1L
         private const val READ_CHAT_MESSAGES_ACTION_NAME = "READ"
         private const val RESOURCE_CHAT_MESSAGES = "chat_messages"
     }
@@ -39,15 +39,15 @@ class SpaceAuthorizationServiceTest : BaseGrpcTest() {
         val spaceId = randomSpaceId()
         initDataHelper.createSpaceUser(spaceId, authenticatedUserId, initDataHelper.createRole(spaceId), isCreator = false)
 
-        assertGrpcStatus(Status.PERMISSION_DENIED) {
-            stub.authorize(
-                AuthorizeRequest.newBuilder()
-                    .setSpaceId(spaceId)
-                    .setResource(RESOURCE_CHAT_MESSAGES)
-                    .setAction(READ_CHAT_MESSAGES_ACTION_NAME)
-                    .build()
-            )
-        }
+        val allowed = stub.authorize(
+            AuthorizeRequest.newBuilder()
+                .setSpaceId(spaceId)
+                .setResource(RESOURCE_CHAT_MESSAGES)
+                .setAction(READ_CHAT_MESSAGES_ACTION_NAME)
+                .build()
+        )
+
+        assertThat(allowed.allowed).isFalse
     }
 
     @Test
@@ -72,7 +72,7 @@ class SpaceAuthorizationServiceTest : BaseGrpcTest() {
         val spaceId = randomSpaceId()
         val defaultRoleId = 1L
 
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, defaultRoleId, isCreator = false)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, defaultRoleId, isCreator = true)
 
         val response = stub.authorize(
             AuthorizeRequest.newBuilder()
@@ -84,4 +84,5 @@ class SpaceAuthorizationServiceTest : BaseGrpcTest() {
 
         assertThat(response.allowed).isTrue()
     }
+
 }

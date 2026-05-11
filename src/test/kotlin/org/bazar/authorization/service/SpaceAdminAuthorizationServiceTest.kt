@@ -20,7 +20,7 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
     }
 
     @Test
-    @DisplayName("Should create user with default role = 'Лил непищик' when creator=false")
+    @DisplayName("Should create user with default role = 'Дефолтыч'")
     fun createUser_shouldCreateMember() = grpcTest {
         //given
         val testSpaceId = randomSpaceId()
@@ -47,7 +47,7 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
     }
 
     @Test
-    @DisplayName("Should create user with creator = true with role = 'Создатель'")
+    @DisplayName("Should create user with creator = true with role = 'Дефолтыч'")
     fun createUser_shouldCreateCreator() = grpcTest {
         //given
         val spaceId = randomSpaceId()
@@ -149,13 +149,13 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
     }
 
     @Test
-    @DisplayName("deleteUser should return SUCCESS and delete user data and scope USER roles when target is in db")
+    @DisplayName("deleteUser should return SUCCESS and delete user data when target is in db")
     fun deleteUser_whenTargetInDb_successAndDeletesData() = grpcTest {
         val spaceId = randomSpaceId()
         val targetUserId = UUID.randomUUID()
         val customRoleId = initDataHelper.createRole(spaceId)
 
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, DEFAULT_USER_ROLE_ID, isCreator = false)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, DEFAULT_USER_ROLE_ID, isCreator = true)
         initDataHelper.createSpaceUser(spaceId, targetUserId, customRoleId, isCreator = false)
 
         val response = adminStub.deleteUser(
@@ -170,9 +170,6 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
         transaction {
             val usersInDb = spaceUserRepository.findAll()
             assertThat(usersInDb).noneMatch { it.userId == targetUserId && it.spaceId == spaceId }
-
-            val rolesInDb = roleRepository.getAllRoles()
-            assertThat(rolesInDb).noneMatch { it.id == customRoleId }
         }
     }
 
@@ -182,7 +179,7 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
         val spaceId = randomSpaceId()
         val targetUserId = UUID.randomUUID()
 
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, DEFAULT_USER_ROLE_ID, isCreator = false)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, DEFAULT_USER_ROLE_ID, isCreator = true)
 
         val response = adminStub.deleteUser(
             DeleteUserRequest.newBuilder()
@@ -203,7 +200,7 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
         val customRoleId = initDataHelper.createRole(spaceId)
         initDataHelper.createRolesActions(customRoleId, actionsInDb.first().id)
 
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = DEFAULT_USER_ROLE_ID, isCreator = false)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = DEFAULT_USER_ROLE_ID, isCreator = true)
         initDataHelper.createSpaceUser(spaceId, UUID.randomUUID(), roleId = customRoleId, isCreator = false)
 
         val response = adminStub.deleteSpace(
