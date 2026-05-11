@@ -2,7 +2,7 @@ package org.bazar.authorization.database.repository
 
 import org.bazar.authorization.database.entity.ActionAttributeEntity
 import org.bazar.authorization.database.tables.ActionAttributes
-import org.bazar.authorization.utils.extensions.toActionAttribute
+import org.bazar.authorization.utils.extensions.mapper.toActionAttribute
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction

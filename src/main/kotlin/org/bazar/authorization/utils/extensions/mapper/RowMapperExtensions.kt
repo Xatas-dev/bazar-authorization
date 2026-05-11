@@ -1,7 +1,8 @@
-package org.bazar.authorization.utils.extensions
+package org.bazar.authorization.utils.extensions.mapper
 
 import org.bazar.authorization.database.entity.*
 import org.bazar.authorization.database.tables.*
+import org.bazar.authorization.utils.extensions.toUuid
 import org.jetbrains.exposed.v1.core.ResultRow
 
 
@@ -32,6 +33,7 @@ fun ResultRow.toSpaceUserEntity(): SpaceUserEntity {
         spaceId = this[SpaceUsers.spaceId],
         userId = this[SpaceUsers.userId].toUuid(),
         roleId = this[SpaceUsers.role].value,
+        isCreator = this[SpaceUsers.isCreator],
         createdAt = this[SpaceUsers.createdAt],
         updatedAt = this[SpaceUsers.updatedAt]
     )
@@ -43,6 +45,8 @@ fun ResultRow.toRoleEntity(): RoleEntity {
         name = this[Roles.name],
         spaceId = this[Roles.spaceId],
         scope = this[Roles.scope],
+        isVisible = this[Roles.isVisible],
+        createdBy = this[Roles.createdBy]?.toUuid(),
         createdAt = this[Roles.createdAt],
         updatedAt = this[Roles.updatedAt]
     )

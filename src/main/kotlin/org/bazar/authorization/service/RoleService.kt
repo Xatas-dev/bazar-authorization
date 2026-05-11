@@ -1,15 +1,14 @@
 package org.bazar.authorization.service
 
-import org.bazar.authorization.database.entity.RoleEntity
 import org.bazar.authorization.database.entity.RoleWithActionMappings
 import org.bazar.authorization.database.entity.RolesActionsEntity
-import org.bazar.authorization.database.entity.SpaceUserEntity
 import org.bazar.authorization.database.entity.enums.RoleScope
 import org.bazar.authorization.database.repository.RoleRepository
 import org.bazar.authorization.database.repository.RolesActionsRepository
-import org.bazar.authorization.utils.buildRole
+import org.bazar.authorization.model.commands.CreateRoleCommand
 import org.bazar.authorization.utils.exceptions.ApiException
 import org.bazar.authorization.utils.exceptions.ApiExceptions
+import org.bazar.authorization.utils.extensions.mapper.toRoleEntity
 import org.bazar.authorization.utils.extensions.toRoleWithActionMappings
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 
@@ -42,10 +41,10 @@ class RoleService(
         role.toRoleWithActionMappings(rolesActions)
     }
 
-    suspend fun createUserScopedRole(actionsWithAttributes: Map<Int, Map<String, String>?>) = suspendTransaction {
-        val createdRole = roleRepository.save(buildRole(RoleScope.USER, "Custom"))
+    suspend fun createSpaceScopedRole(createRoleCommand: CreateRoleCommand) = suspendTransaction {
+        val createdRole = roleRepository.save(createRoleCommand.toRoleEntity())
 
-        val roleActionMappingsToCreate = actionsWithAttributes.map {
+        val roleActionMappingsToCreate = createRoleCommand.actionIdToAttributes.map {
             RolesActionsEntity(
                 createdRole.id!!,
                 it.key,
@@ -59,6 +58,10 @@ class RoleService(
 
     suspend fun getAllRolesByIds(roleIds: Collection<Long>) = suspendTransaction {
         roleRepository.getAllByRoleIdsIn(roleIds.distinct())
+    }
+
+    suspend fun getRoleById(roleId: Long) = suspendTransaction {
+        roleRepository.findById(roleId) ?: throw ApiException(ApiExceptions.NO_SUCH_ROLE, "roleId: $roleId")
     }
 
 }

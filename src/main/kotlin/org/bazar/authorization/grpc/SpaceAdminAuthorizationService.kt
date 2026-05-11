@@ -7,6 +7,7 @@ import org.bazar.authorization.service.RoleService
 import org.bazar.authorization.service.SpaceUserService
 import org.bazar.authorization.utils.exceptions.ApiException
 import org.bazar.authorization.utils.exceptions.ApiExceptions
+import org.bazar.authorization.utils.extensions.builder.buildAuthorizationCommand
 import org.bazar.authorization.utils.extensions.toUuid
 import org.bazar.authorization.utils.extensions.validate
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
@@ -22,13 +23,15 @@ class SpaceAdminAuthorizationService(
     1. Find all role_id's from space_user table by specified space_id
     2. Delete all rows from space_user by specified space_id
     3. Delete all rows from roles_actions by role_id's found on step 1
-    4. Delete all roles by role_id's found on step 1, ONLY USER SCOPE
+    4. Delete all roles by role_id's found on step 1, ONLY SPACE SCOPE
      **/
     override suspend fun deleteSpace(request: DeleteSpaceRequest): DeleteSpaceResponse {
         request.validate()
         val authenticatedUserId = GrpcSecurityContext.getUserId()
 
-        if (!authorizationService.authorize(request.spaceId, authenticatedUserId, "space", "DELETE")) {
+        val authorizeCommand = buildAuthorizationCommand(request.spaceId, authenticatedUserId, "space", "DELETE")
+
+        if (!authorizationService.authorize(authorizeCommand)) {
             throw ApiException(ApiExceptions.INSUFFICIENT_PERMISSIONS)
         }
 
@@ -36,7 +39,7 @@ class SpaceAdminAuthorizationService(
 
         suspendTransaction {
             spaceUserService.deleteAllUsersFromSpace(request.spaceId)
-            roleService.deleteAllByRoleIdsAndScope(roleIds, RoleScope.USER)
+            roleService.deleteAllByRoleIdsAndScope(roleIds, RoleScope.SPACE)
         }
 
         return DeleteSpaceResponse.newBuilder().setSuccess(true).build()
@@ -51,19 +54,19 @@ class SpaceAdminAuthorizationService(
         request.validate()
         val authenticatedUserId = GrpcSecurityContext.getUserId()
 
-        if (!request.isCreator && !authorizationService.authorize(
-                request.spaceId,
-                authenticatedUserId,
-                "space_user",
-                "ADD"
-            )
+        val authorizeCommand = buildAuthorizationCommand(
+            request.spaceId,
+            authenticatedUserId,
+            "space_user",
+            "ADD"
+        )
+
+        if (!request.isCreator && !authorizationService.authorize(authorizeCommand)
         ) {
             throw ApiException(ApiExceptions.INSUFFICIENT_PERMISSIONS)
         }
 
-        val roleId = if (request.isCreator) 1L else 2L
-
-        spaceUserService.saveOnConflictThrow(request.spaceId, request.userId.toUuid(), roleId)
+        spaceUserService.saveOnConflictThrow(request.spaceId, request.userId.toUuid(), 1L, request.isCreator)
 
         return CreateUserResponse.newBuilder().setSuccess(true).build()
     }
@@ -72,25 +75,23 @@ class SpaceAdminAuthorizationService(
         request.validate()
         val authenticatedUserId = GrpcSecurityContext.getUserId()
 
-        if (!authorizationService.authorize(
-                request.spaceId,
-                authenticatedUserId,
-                "space_user",
-                "DELETE",
-                resourceAttributes = mapOf("creator" to request.isCreator.toString())
-            )
+        val authorizeCommand = buildAuthorizationCommand(
+            request.spaceId,
+            authenticatedUserId,
+            "space_user",
+            "DELETE",
+            resourceAttributes = mapOf("is_creator" to request.isCreator.toString())
+        )
+
+        if (!authorizationService.authorize(authorizeCommand)
         ) {
             throw ApiException(ApiExceptions.INSUFFICIENT_PERMISSIONS)
         }
 
         val targetUserId = request.userId.toUuid()
-        val roleIdToDelete = spaceUserService.getOrNull(request.spaceId, targetUserId)?.roleId
 
-        if (roleIdToDelete != null) {
-            suspendTransaction {
-                spaceUserService.deleteSpaceUser(request.spaceId, targetUserId)
-                roleService.deleteAllByRoleIdsAndScope(listOf(roleIdToDelete), RoleScope.USER)
-            }
+        suspendTransaction {
+            spaceUserService.deleteSpaceUser(request.spaceId, targetUserId)
         }
 
         return DeleteUserResponse.newBuilder().setSuccess(true).build()

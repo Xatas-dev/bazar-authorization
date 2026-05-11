@@ -2,7 +2,7 @@ package org.bazar.authorization.database.repository
 
 import org.bazar.authorization.database.entity.SpaceUserEntity
 import org.bazar.authorization.database.tables.SpaceUsers
-import org.bazar.authorization.utils.extensions.toSpaceUserEntity
+import org.bazar.authorization.utils.extensions.mapper.toSpaceUserEntity
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
@@ -40,6 +40,7 @@ class SpaceUserRepository {
             it[spaceId] = entity.spaceId
             it[userId] = entity.userId.toString()
             it[role] = entity.roleId
+            it[isCreator] = entity.isCreator
             it[createdAt] = entity.createdAt
             it[updatedAt] = entity.updatedAt
         }

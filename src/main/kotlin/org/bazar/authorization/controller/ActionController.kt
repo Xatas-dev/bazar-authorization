@@ -9,6 +9,7 @@ import org.bazar.authorization.service.api.ActionApiService
 import org.bazar.authorization.utils.exceptions.ApiException
 import org.bazar.authorization.utils.exceptions.ApiExceptions
 import org.bazar.authorization.utils.extensions.getAuthenticatedUserId
+import org.bazar.authorization.utils.extensions.builder.buildAuthorizationCommand
 
 class ActionController(
     private val actionApiService: ActionApiService,
@@ -18,7 +19,11 @@ class ActionController(
     fun Route.getAllActions() = get("/actions") {
         val spaceId = call.queryParameters.getOrFail<Long>("spaceId")
 
-        if (!authorizationService.authorize(spaceId, call.getAuthenticatedUserId(), "space_user_actions", "READ")) {
+        val authorizeCommand = buildAuthorizationCommand(
+            spaceId, call.getAuthenticatedUserId(), "roles", "READ"
+        )
+
+        if (!authorizationService.authorize(authorizeCommand)) {
             throw ApiException(ApiExceptions.INSUFFICIENT_PERMISSIONS, "Denied for ${call.request.path()}")
         }
 

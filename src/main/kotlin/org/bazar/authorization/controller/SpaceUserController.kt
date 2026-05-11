@@ -1,70 +1,63 @@
 package org.bazar.authorization.controller
 
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.server.util.*
-import org.bazar.authorization.model.rest.request.CreateRoleRequest
 import org.bazar.authorization.service.AuthorizationService
 import org.bazar.authorization.service.api.SpaceUserApiService
-import org.bazar.authorization.utils.exceptions.ApiException
-import org.bazar.authorization.utils.exceptions.ApiExceptions
-import org.bazar.authorization.utils.extensions.extractActionsToGrant
-import org.bazar.authorization.utils.extensions.getAuthenticatedUserId
-import org.bazar.authorization.utils.extensions.toUuid
-import java.util.*
 
 class SpaceUserController(
     private val authorizationService: AuthorizationService,
     private val spaceUserApiService: SpaceUserApiService
 ) {
 
-    fun Route.getRole() = get("/space-users/roles") {
-        val userId = call.queryParameters.getOrFail<String>("userId").toUuid()
-        val spaceId = call.queryParameters.getOrFail<Long>("spaceId")
-        val requesterId = call.getAuthenticatedUserId()
+//    fun Route.getRole() = get("/space-users/roles") {
+//        val spaceId = call.queryParameters.getOrFail<Long>("spaceId")
+//        val toAssign = call.queryParameters["toAssign"]?.toBoolean()
+//        val requesterId = call.getAuthenticatedUserId()
+//
+//        val authorizeCommand = buildAuthorizationCommand(
+//            spaceId,
+//        )
+//
+//        if (userId != requesterId &&
+//            !authorizationService.authorize(spaceId, requesterId, "space_user_actions", "READ")
+//        ) {
+//            throw ApiException(ApiExceptions.INSUFFICIENT_PERMISSIONS, "Denied for ${call.request.path()}")
+//        }
+//
+//        call.respond(
+//            spaceUserApiService.getRoleWithActionsAndAttributes(spaceId, userId)
+//        )
+//    }
 
-        if (userId != requesterId &&
-            !authorizationService.authorize(spaceId, requesterId, "space_user_actions", "READ")
-        ) {
-            throw ApiException(ApiExceptions.INSUFFICIENT_PERMISSIONS, "Denied for ${call.request.path()}")
-        }
+//    fun Route.getRoleNames() = get("/space-users/role-names") {
+//        val userIds = call.queryParameters.getOrFail<List<UUID>>("userIds")
+//        val spaceId = call.queryParameters.getOrFail<Long>("spaceId")
+//        val requesterId = call.getAuthenticatedUserId()
+//
+//        authorizationService.checkIfUserInSpace(requesterId, spaceId)
+//
+//        call.respond(
+//            spaceUserApiService.getRoleNames(spaceId, userIds)
+//        )
+//    }
 
-        call.respond(
-            spaceUserApiService.getRoleWithActionsAndAttributes(spaceId, userId)
-        )
-    }
-
-    fun Route.getRoleNames() = get("/space-users/role-names") {
-        val userIds = call.queryParameters.getOrFail<List<UUID>>("userIds")
-        val spaceId = call.queryParameters.getOrFail<Long>("spaceId")
-        val requesterId = call.getAuthenticatedUserId()
-
-        authorizationService.checkIfUserInSpace(requesterId, spaceId)
-
-        call.respond(
-            spaceUserApiService.getRoleNames(spaceId, userIds)
-        )
-    }
-
-    fun Route.createRole() = post("/space-users/roles") {
-        val request = call.receive<CreateRoleRequest>()
-        val requesterId = call.getAuthenticatedUserId()
-
-        if (!authorizationService.authorize(
-                request.spaceId,
-                requesterId,
-                "space_user_actions",
-                "WRITE",
-                request.extractActionsToGrant()
-            )
-        ) {
-            throw ApiException(ApiExceptions.INSUFFICIENT_PERMISSIONS, "Denied for ${call.request.path()}")
-        }
-
-        call.respond(
-            spaceUserApiService.createRoleAndDeletePrev(request)
-        )
-    }
+//    fun Route.createRole() = post("/space-users/roles") {
+//        val request = call.receive<CreateRoleRequest>()
+//        val requesterId = call.getAuthenticatedUserId()
+//
+//        if (!authorizationService.authorize(
+//                request.spaceId,
+//                requesterId,
+//                "space_user_actions",
+//                "WRITE",
+//                request.extractActionsToGrant()
+//            )
+//        ) {
+//            throw ApiException(ApiExceptions.INSUFFICIENT_PERMISSIONS, "Denied for ${call.request.path()}")
+//        }
+//
+//        call.respond(
+//            spaceUserApiService.createRoleAndDeletePrev(request, requesterId)
+//        )
+//    }
 
 }
