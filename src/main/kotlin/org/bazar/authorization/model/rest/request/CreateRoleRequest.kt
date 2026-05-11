@@ -4,8 +4,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CreateRoleRequest(
-    val userId: String,
     val spaceId: Long,
+    val name: String,
+    val isVisible: Boolean,
     val actions: List<CreateRoleRequestActionDto>
 )
 

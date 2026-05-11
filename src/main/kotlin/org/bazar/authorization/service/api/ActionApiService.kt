@@ -3,7 +3,7 @@ package org.bazar.authorization.service.api
 import org.bazar.authorization.model.rest.response.GetActionsResponse
 import org.bazar.authorization.service.ActionAttributeService
 import org.bazar.authorization.service.ActionService
-import org.bazar.authorization.utils.buildGetActionsResponse
+import org.bazar.authorization.utils.extensions.builder.buildGetActionsResponse
 
 class ActionApiService(
     private val actionService: ActionService,

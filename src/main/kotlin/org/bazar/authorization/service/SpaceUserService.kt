@@ -2,7 +2,7 @@ package org.bazar.authorization.service
 
 import org.bazar.authorization.database.entity.SpaceUserEntity
 import org.bazar.authorization.database.repository.SpaceUserRepository
-import org.bazar.authorization.utils.buildSpaceUser
+import org.bazar.authorization.utils.extensions.builder.buildSpaceUser
 import org.bazar.authorization.utils.exceptions.ApiException
 import org.bazar.authorization.utils.exceptions.ApiExceptions
 import org.bazar.authorization.utils.exceptions.ApiExceptions.NO_SUCH_USER_IN_SPACE
@@ -30,8 +30,8 @@ class SpaceUserService(
         spaceUserRepository.findRoleIdBySpaceIdAndUserId(spaceId, userId)
     }
 
-    suspend fun saveOnConflictThrow(spaceId: Long, userId: UUID, roleId: Long) = suspendTransaction {
-        val entityToSave = buildSpaceUser(spaceId, userId, roleId)
+    suspend fun saveOnConflictThrow(spaceId: Long, userId: UUID, roleId: Long, isCreator: Boolean) = suspendTransaction {
+        val entityToSave = buildSpaceUser(spaceId, userId, roleId, isCreator)
 
         spaceUserRepository.findRoleIdBySpaceIdAndUserId(entityToSave.spaceId, entityToSave.userId)
             ?.let { throw ApiException(ApiExceptions.USER_ALREADY_EXISTS) }

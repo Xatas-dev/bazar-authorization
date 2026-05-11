@@ -1,19 +1,19 @@
-package org.bazar.authorization.utils
+package org.bazar.authorization.utils.extensions.builder
 
 import org.bazar.authorization.database.entity.*
-import org.bazar.authorization.database.entity.enums.RoleScope
 import org.bazar.authorization.model.authz.AuthorizationRequest
 import org.bazar.authorization.model.rest.response.GetActionsResponse
 import org.bazar.authorization.model.rest.response.GetRoleNameDto
 import org.bazar.authorization.model.rest.response.GetRoleNamesResponse
-import org.bazar.authorization.utils.extensions.toGetActionDto
+import org.bazar.authorization.utils.extensions.mapper.toGetActionDto
 import java.util.*
 
-fun buildSpaceUser(spaceId: Long, userId: UUID, roleId: Long): SpaceUserEntity {
+fun buildSpaceUser(spaceId: Long, userId: UUID, roleId: Long, isCreator: Boolean): SpaceUserEntity {
     return SpaceUserEntity(
         spaceId = spaceId,
         userId = userId,
-        roleId = roleId
+        roleId = roleId,
+        isCreator = isCreator
     )
 }
 
@@ -22,14 +22,6 @@ fun buildRolesActions(roleId: Long, actionId: Int): RolesActionsEntity {
         roleId = roleId,
         actionId = actionId,
         null
-    )
-}
-
-fun buildRole(scope: RoleScope, name: String, spaceId: Long? = null): RoleEntity {
-    return RoleEntity(
-        name = name,
-        spaceId = spaceId,
-        scope = scope
     )
 }
 

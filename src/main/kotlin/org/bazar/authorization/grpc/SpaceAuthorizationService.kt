@@ -2,6 +2,7 @@ package org.bazar.authorization.grpc
 
 import org.bazar.authorization.grpc.AuthorizationServiceGrpcKt.AuthorizationServiceCoroutineImplBase
 import org.bazar.authorization.service.AuthorizationService
+import org.bazar.authorization.utils.extensions.builder.buildAuthorizationCommand
 import org.bazar.authorization.utils.extensions.validate
 import org.slf4j.LoggerFactory
 
@@ -15,11 +16,9 @@ class SpaceAuthorizationService(
         request.validate()
         val authenticatedUserId = GrpcSecurityContext.getUserId()
 
-        val allowed =
-            authorizationService.authorize(
-                request,
-                authenticatedUserId
-            )
+        val authorizeCommand = buildAuthorizationCommand(request, authenticatedUserId)
+
+        val allowed = authorizationService.authorize(authorizeCommand)
 
         return AuthorizeResponse.newBuilder()
             .setAllowed(allowed)

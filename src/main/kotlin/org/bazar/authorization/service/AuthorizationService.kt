@@ -1,14 +1,16 @@
 package org.bazar.authorization.service
 
-import org.bazar.authorization.grpc.AuthorizeRequest
-import org.bazar.authorization.utils.buildAuthorizationRequest
+import org.bazar.authorization.database.entity.SpaceUserEntity
+import org.bazar.authorization.model.commands.AuthorizeCommand
+import org.bazar.authorization.service.attribute_extractor.AttributeExtractionContext
+import org.bazar.authorization.service.attribute_extractor.AttributeExtractor
+import org.bazar.authorization.utils.extensions.builder.buildAuthorizationRequest
 import java.util.*
 
 class AuthorizationService(
-    private val roleService: RoleService,
     private val spaceUserService: SpaceUserService,
-    private val actionService: ActionService,
-    private val cerbosAccessService: CerbosAccessService
+    private val cerbosAccessService: CerbosAccessService,
+    private val attributeExtractors: List<AttributeExtractor>
 ) {
 
     /**
@@ -19,41 +21,25 @@ class AuthorizationService(
      * 3. Find role-action mapping from roles_actions with specified role_id and action_id (throw 401 if no such)
      * 4. Check authorization decision via cerbos
      */
-    suspend fun authorize(
-        request: AuthorizeRequest,
-        loggedInUserId: UUID
-    ): Boolean {
-        return authorize(
-            request.spaceId,
-            loggedInUserId,
-            request.resource,
-            request.action,
-            request.principalAttributesList.associate { it.name to it.value },
-            request.resourceAttributesList.associate { it.name to it.value })
-    }
+    suspend fun authorize(command: AuthorizeCommand): Boolean {
+        val spaceUserInDb = spaceUserService.getSpaceUser(command.spaceId, command.loggedInUserId)
 
-    /*
-        Authorize with predefined Permission (resource + action). Used for admin API.
-     */
-    suspend fun authorize(
-        spaceId: Long,
-        loggedInUserId: UUID,
-        resource: String,
-        action: String,
-        principalAttributes: Map<String, String> = emptyMap(),
-        resourceAttributes: Map<String, String> = emptyMap()
-    ): Boolean {
+        val initialAttributeExtractionContext = buildAttributeExtractionContext(command, spaceUserInDb)
 
-        val existingAction = actionService.getActionByNameAndResourceOrThrow(action, resource)
-        val spaceUserInDb = spaceUserService.getSpaceUser(spaceId, loggedInUserId)
-
-        val enrichedPrincipalAttributes =
-            principalAttributes + (roleService.getRoleActionMappings(spaceUserInDb.roleId, existingAction.id)
-                .assignedAttributes ?: emptyMap())
-
+        val finalContext = attributeExtractors
+            .filter { it.isApplicable(initialAttributeExtractionContext) }
+            .fold(initialAttributeExtractionContext) { context, extractor ->
+                extractor.extract(context)
+            }
 
         val authzRequest =
-            buildAuthorizationRequest(spaceUserInDb, resource, action, enrichedPrincipalAttributes, resourceAttributes)
+            buildAuthorizationRequest(
+                spaceUserInDb,
+                command.resource,
+                command.action,
+                finalContext.principalAttributes,
+                finalContext.resourceAttributes
+            )
 
         return cerbosAccessService.checkAccess(authzRequest)
 
@@ -62,5 +48,19 @@ class AuthorizationService(
     suspend fun checkIfUserInSpace(userId: UUID, spaceId: Long) {
         spaceUserService.getSpaceUser(spaceId, userId)
     }
+
+    private fun buildAttributeExtractionContext(
+        authorizeCommand: AuthorizeCommand,
+        authenticatedUser: SpaceUserEntity
+    ) =
+        AttributeExtractionContext(
+            authorizeCommand.principalAttributes.toMutableMap(),
+            authorizeCommand.resourceAttributes.toMutableMap(),
+            authenticatedUser,
+            authorizeCommand.resource,
+            authorizeCommand.action,
+            authorizeCommand.resourceId
+        )
+
 
 }

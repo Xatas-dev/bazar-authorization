@@ -16,8 +16,7 @@ import java.util.*
 class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
 
     companion object {
-        private const val CREATOR_ROLE_ID = 1L
-        private const val DEFAULT_USER_ROLE_ID = 2L
+        private const val DEFAULT_USER_ROLE_ID = 1L
     }
 
     @Test
@@ -26,7 +25,7 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
         //given
         val testSpaceId = randomSpaceId()
         val userIdToAdd = UUID.randomUUID()
-        initDataHelper.createSpaceUser(testSpaceId, authenticatedUserId, CREATOR_ROLE_ID)
+        initDataHelper.createSpaceUser(testSpaceId, authenticatedUserId, DEFAULT_USER_ROLE_ID, isCreator = false)
 
         //when
         val response = adminStub.createUser(
@@ -68,7 +67,7 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
         val createdUsers = initDataHelper.getAllSpaceUsers(spaceId)
         assertThat(createdUsers).hasSize(1)
         val createdUser = createdUsers.first()
-        assertThat(createdUser.roleId).isEqualTo(CREATOR_ROLE_ID)
+        assertThat(createdUser.roleId).isEqualTo(DEFAULT_USER_ROLE_ID)
         assertThat(createdUser.spaceId).isEqualTo(spaceId)
     }
 
@@ -99,7 +98,7 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
     fun createUser_whenCallerHasNoAddPermission() = grpcTest {
         val spaceId = randomSpaceId()
         val targetUserId = UUID.randomUUID()
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, initDataHelper.createRole())
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, initDataHelper.createRole(spaceId), isCreator = false)
 
         assertGrpcStatus(Status.PERMISSION_DENIED) {
             adminStub.createUser(
@@ -117,8 +116,8 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
     fun createUser_whenUserAlreadyExists() = grpcTest {
         val spaceId = randomSpaceId()
         val targetUserId = UUID.randomUUID()
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, CREATOR_ROLE_ID)
-        initDataHelper.createSpaceUser(spaceId, targetUserId, DEFAULT_USER_ROLE_ID)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, DEFAULT_USER_ROLE_ID, isCreator = true)
+        initDataHelper.createSpaceUser(spaceId, targetUserId, DEFAULT_USER_ROLE_ID, isCreator = false)
 
         assertGrpcStatus(Status.ALREADY_EXISTS) {
             adminStub.createUser(
@@ -136,8 +135,8 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
     fun deleteUser_whenCallerHasNoDeletePermission() = grpcTest {
         val spaceId = randomSpaceId()
         val targetUserId = UUID.randomUUID()
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, DEFAULT_USER_ROLE_ID)
-        initDataHelper.createSpaceUser(spaceId, targetUserId, DEFAULT_USER_ROLE_ID)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, DEFAULT_USER_ROLE_ID, isCreator = false)
+        initDataHelper.createSpaceUser(spaceId, targetUserId, DEFAULT_USER_ROLE_ID, isCreator = false)
 
         assertGrpcStatus(Status.PERMISSION_DENIED) {
             adminStub.deleteUser(
@@ -154,10 +153,10 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
     fun deleteUser_whenTargetInDb_successAndDeletesData() = grpcTest {
         val spaceId = randomSpaceId()
         val targetUserId = UUID.randomUUID()
-        val customRoleId = initDataHelper.createRole()
+        val customRoleId = initDataHelper.createRole(spaceId)
 
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, CREATOR_ROLE_ID)
-        initDataHelper.createSpaceUser(spaceId, targetUserId, customRoleId)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, DEFAULT_USER_ROLE_ID, isCreator = false)
+        initDataHelper.createSpaceUser(spaceId, targetUserId, customRoleId, isCreator = false)
 
         val response = adminStub.deleteUser(
             DeleteUserRequest.newBuilder()
@@ -183,7 +182,7 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
         val spaceId = randomSpaceId()
         val targetUserId = UUID.randomUUID()
 
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, CREATOR_ROLE_ID)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, DEFAULT_USER_ROLE_ID, isCreator = false)
 
         val response = adminStub.deleteUser(
             DeleteUserRequest.newBuilder()
@@ -201,11 +200,11 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
         //given
         val spaceId = randomSpaceId()
         val actionsInDb = initDataHelper.getAllActions()
-        val customRoleId = initDataHelper.createRole()
+        val customRoleId = initDataHelper.createRole(spaceId)
         initDataHelper.createRolesActions(customRoleId, actionsInDb.first().id)
 
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = CREATOR_ROLE_ID)
-        initDataHelper.createSpaceUser(spaceId, UUID.randomUUID(), roleId = customRoleId)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = DEFAULT_USER_ROLE_ID, isCreator = false)
+        initDataHelper.createSpaceUser(spaceId, UUID.randomUUID(), roleId = customRoleId, isCreator = false)
 
         val response = adminStub.deleteSpace(
             DeleteSpaceRequest.newBuilder()
@@ -243,7 +242,7 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
     @DisplayName("deleteSpace should return PERMISSION_DENIED without DELETE space permission")
     fun deleteSpace_whenCallerHasNoDeleteSpacePermission() = grpcTest {
         val spaceId = randomSpaceId()
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, DEFAULT_USER_ROLE_ID)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, DEFAULT_USER_ROLE_ID, isCreator = false)
 
         assertGrpcStatus(Status.PERMISSION_DENIED) {
             adminStub.deleteSpace(

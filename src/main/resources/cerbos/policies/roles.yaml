@@ -48,14 +48,17 @@ resourcePolicy:
       roles: [ user ]
       condition:
         match:
-          any:
+          all:
             of:
-              - expr: has(P.attr.is_creator) && P.attr.is_creator == true
-              - all:
+              - expr: has(R.attr.scope) && R.attr.scope != "GLOBAL"
+              - any:
                   of:
-                    - expr: has(P.attr.allowed_actions) && 'roles:EDIT' in P.attr.allowed_actions
-                    - expr: has(P.attr.actions_to_grant) && has(P.attr.grantable_actions) && P.attr.actions_to_grant.isSubset(P.attr.grantable_actions)
-                    - any:
+                    - expr: has(P.attr.is_creator) && P.attr.is_creator == true
+                    - all:
                         of:
-                          - expr: has(R.attr.created_by) && has(P.attr.user_id) && R.attr.created_by == P.attr.user_id
-                          - expr: has(P.attr.manageable_roles) && has(R.attr.id) && R.attr.id in P.attr.manageable_roles
+                          - expr: has(P.attr.allowed_actions) && 'roles:EDIT' in P.attr.allowed_actions
+                          - expr: has(P.attr.actions_to_grant) && has(P.attr.grantable_actions) && P.attr.actions_to_grant.isSubset(P.attr.grantable_actions)
+                          - any:
+                              of:
+                                - expr: has(R.attr.created_by) && has(P.attr.user_id) && R.attr.created_by == P.attr.user_id
+                                - expr: has(P.attr.manageable_roles) && has(R.attr.id) && R.attr.id in P.attr.manageable_roles

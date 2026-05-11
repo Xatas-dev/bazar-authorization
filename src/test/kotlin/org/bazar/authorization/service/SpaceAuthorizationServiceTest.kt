@@ -20,7 +20,7 @@ class SpaceAuthorizationServiceTest : BaseGrpcTest() {
     fun authorize_whenUserHasAction_returnAllowed() = grpcTest {
         val spaceId = randomSpaceId()
 
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, DEFAULT_USER_ROLE_ID)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, DEFAULT_USER_ROLE_ID, isCreator = false)
 
         val response = stub.authorize(
             AuthorizeRequest.newBuilder()
@@ -37,7 +37,7 @@ class SpaceAuthorizationServiceTest : BaseGrpcTest() {
     @DisplayName("authorize should return PERMISSION_DENIED when user is in space but lacks the specific action")
     fun authorize_whenUserLacksAction_returnPermissionDenied() = grpcTest {
         val spaceId = randomSpaceId()
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, initDataHelper.createRole())
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, initDataHelper.createRole(spaceId), isCreator = false)
 
         assertGrpcStatus(Status.PERMISSION_DENIED) {
             stub.authorize(
@@ -70,9 +70,9 @@ class SpaceAuthorizationServiceTest : BaseGrpcTest() {
     @DisplayName("authorize should return ALLOWED=true when space creator tries to WRITE chat messages")
     fun authorize_creatorWriteChatMessages_returnAllowed() = grpcTest {
         val spaceId = randomSpaceId()
-        val creatorRoleId = 1L
+        val defaultRoleId = 1L
 
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, creatorRoleId)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, defaultRoleId, isCreator = false)
 
         val response = stub.authorize(
             AuthorizeRequest.newBuilder()

@@ -3,7 +3,7 @@ package org.bazar.authorization.database.repository
 import org.bazar.authorization.database.entity.RoleEntity
 import org.bazar.authorization.database.entity.enums.RoleScope
 import org.bazar.authorization.database.tables.Roles
-import org.bazar.authorization.utils.extensions.toRoleEntity
+import org.bazar.authorization.utils.extensions.mapper.toRoleEntity
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
@@ -23,6 +23,8 @@ class RoleRepository {
             it[name] = entity.name
             it[spaceId] = entity.spaceId
             it[scope] = entity.scope
+            it[isVisible] = entity.isVisible
+            it[createdBy] = entity.createdBy.toString()
             it[createdAt] = entity.createdAt
             it[updatedAt] = entity.updatedAt
         }.single().toRoleEntity()

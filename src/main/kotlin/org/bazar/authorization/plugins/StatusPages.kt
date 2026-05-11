@@ -7,7 +7,7 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import org.bazar.authorization.model.rest.response.ErrorResponse
 import org.bazar.authorization.utils.exceptions.ApiException
-import org.bazar.authorization.utils.extensions.toErrorDto
+import org.bazar.authorization.utils.extensions.mapper.toErrorDto
 import org.bazar.authorization.utils.logger
 
 fun Application.configureStatusPages() {

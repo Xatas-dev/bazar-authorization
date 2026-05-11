@@ -1,17 +1,12 @@
 package org.bazar.authorization.service.api
 
-import org.bazar.authorization.database.entity.enums.RoleScope
-import org.bazar.authorization.model.rest.request.CreateRoleRequest
 import org.bazar.authorization.model.rest.response.GetSpaceUsersRoleResponse
 import org.bazar.authorization.service.ActionAttributeService
 import org.bazar.authorization.service.ActionService
 import org.bazar.authorization.service.RoleService
 import org.bazar.authorization.service.SpaceUserService
-import org.bazar.authorization.utils.buildGetRoleNamesResponse
-import org.bazar.authorization.utils.exceptions.ApiException
-import org.bazar.authorization.utils.exceptions.ApiExceptions
-import org.bazar.authorization.utils.extensions.toGetSpaceUsersRoleResponse
-import org.bazar.authorization.utils.extensions.toUuid
+import org.bazar.authorization.utils.extensions.builder.buildGetRoleNamesResponse
+import org.bazar.authorization.utils.extensions.mapper.toGetSpaceUsersRoleResponse
 import org.bazar.authorization.utils.logger
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import java.util.UUID
@@ -45,32 +40,23 @@ class SpaceUserApiService(
     /*
         Create new USER scope role and delete previous role if it was USER scope
      */
-    suspend fun createRoleAndDeletePrev(request: CreateRoleRequest) = suspendTransaction {
-        val roleIdToDelete = spaceUserService.getSpaceUser(request.spaceId, request.userId.toUuid()).roleId
-
-        val attributeEntities = actionAttributeService.getAllAttributesByIds(
-            request.actions.flatMap { it.attributes.map { attr -> attr.id } }
-        )
-
-        val attrIdToNameMap = attributeEntities.associate { it.id to it.name }
-
-        val actionsWithAttributes = request.actions.associate { actionReq ->
-            val attrNameToValue = actionReq.attributes.mapNotNull { attr ->
-                attrIdToNameMap[attr.id]?.let { name -> name to attr.value }
-                    ?: throw ApiException(ApiExceptions.NO_SUCH_ATTRIBUTE, "id = ${attr.id}")
-            }.toMap()
-
-            actionReq.id to attrNameToValue
-        }
-
-        val newRole = roleService.createUserScopedRole(actionsWithAttributes)
-        spaceUserService.assignRoleToUser(request.userId.toUuid(), request.spaceId, newRole.role.id!!)
-        roleService.deleteAllByRoleIdsAndScope(listOf(roleIdToDelete), RoleScope.USER)
-
-        val actions = actionService.findAllByIds(actionsWithAttributes.keys.toList())
-
-        newRole.toGetSpaceUsersRoleResponse(actions, attributeEntities)
-    }
+//    suspend fun createRoleAndDeletePrev(request: CreateRoleRequest, loggedUserId: UUID) = suspendTransaction {
+//        val roleIdToDelete = spaceUserService.getSpaceUser(request.spaceId, request.userId.toUuid()).roleId
+//
+//        val attributeEntities = actionAttributeService.getAllAttributesByIds(
+//            request.actions.flatMap { it.attributes.map { attr -> attr.id } }
+//        )
+//
+//        val createRoleCommand = request.toCreateRoleCommand(attributeEntities, loggedUserId)
+//
+//        val newRole = roleService.createSpaceScopedRole(createRoleCommand)
+//        spaceUserService.assignRoleToUser(request.userId.toUuid(), request.spaceId, newRole.role.id!!)
+//        roleService.deleteAllByRoleIdsAndScope(listOf(roleIdToDelete), RoleScope.USER)
+//
+//        val actions = actionService.findAllByIds(actionsWithAttributes.keys.toList())
+//
+//        newRole.toGetSpaceUsersRoleResponse(actions, attributeEntities)
+//    }
 
     suspend fun getRoleNames(spaceId: Long, userIds: List<UUID>) = suspendTransaction {
         val users = spaceUserService.getAllUsers(spaceId, userIds)

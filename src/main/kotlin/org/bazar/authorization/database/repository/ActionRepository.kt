@@ -2,7 +2,7 @@ package org.bazar.authorization.database.repository
 
 import org.bazar.authorization.database.entity.ActionEntity
 import org.bazar.authorization.database.tables.Actions
-import org.bazar.authorization.utils.extensions.toActionEntity
+import org.bazar.authorization.utils.extensions.mapper.toActionEntity
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList

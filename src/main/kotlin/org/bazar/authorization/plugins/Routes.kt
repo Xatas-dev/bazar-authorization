@@ -19,11 +19,11 @@ fun Application.configureRoutes() {
                 with(actionController) {
                     getAllActions()
                 }
-                with(spaceUserController) {
-                    getRole()
-                    createRole()
-                    getRoleNames()
-                }
+//                with(spaceUserController) {
+//                    getRole()
+//                    createRole()
+//                    getRoleNames()
+//                }
             }
         }
     }
