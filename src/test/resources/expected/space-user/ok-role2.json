@@ -1,6 +1,8 @@
 {
-  "id": 2,
-  "name": "Лил непищик",
+  "id": 1,
+  "name": "Дефолтыч",
+  "isVisible":false,
+  "createdBy":"null",
   "actions": [
     {
       "id": 3,

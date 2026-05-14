@@ -53,8 +53,8 @@ class InitDataHelper(
         actionRepository.getAllActions()
     }
 
-    fun createRole(spaceId: Long): Long = transaction {
-        roleRepository.save(RoleEntity(RoleScope.SPACE, "rand", true, UUID.randomUUID(), spaceId)).id!!
+    fun createRole(spaceId: Long, createdBy: UUID = UUID.randomUUID()): Long = transaction {
+        roleRepository.save(RoleEntity(RoleScope.SPACE, "rand", true, createdBy, spaceId)).id!!
     }
 
     fun getAllSpaceUsers(spaceId: Long): List<SpaceUserEntity> {

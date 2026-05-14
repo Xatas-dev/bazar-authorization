@@ -11,11 +11,22 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertReturning
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
+import org.jetbrains.exposed.v1.jdbc.updateReturning
 
 class RoleRepository {
 
     fun deleteAll(roleIds: List<Long>) {
         Roles.deleteWhere { Roles.id inList roleIds }
+    }
+
+    fun update(entity: RoleEntity): RoleEntity {
+        return Roles.updateReturning(where = { Roles.id eq entity.id }) {
+            it[name] = entity.name
+            it[isVisible] = entity.isVisible
+            it[updatedAt] = entity.updatedAt
+        }
+            .single()
+            .toRoleEntity()
     }
 
     fun save(entity: RoleEntity): RoleEntity {
