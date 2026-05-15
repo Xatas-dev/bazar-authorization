@@ -9,7 +9,7 @@ fun buildAuthorizationCommand(
     authenticatedUserId: UUID,
     resource: String,
     action: String,
-    resourceId: String = "",
+    resourceId: String? = null,
     principalAttributes: Map<String, String> = emptyMap(),
     resourceAttributes: Map<String, String> = emptyMap(),
 ) =

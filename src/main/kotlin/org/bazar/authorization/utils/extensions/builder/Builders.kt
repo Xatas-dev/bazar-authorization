@@ -1,10 +1,11 @@
 package org.bazar.authorization.utils.extensions.builder
 
-import org.bazar.authorization.database.entity.*
+import org.bazar.authorization.database.entity.ActionAttributeEntity
+import org.bazar.authorization.database.entity.ActionEntity
+import org.bazar.authorization.database.entity.RolesActionsEntity
+import org.bazar.authorization.database.entity.SpaceUserEntity
 import org.bazar.authorization.model.authz.AuthorizationRequest
 import org.bazar.authorization.model.rest.response.GetActionsResponse
-import org.bazar.authorization.model.rest.response.GetRoleNameDto
-import org.bazar.authorization.model.rest.response.GetRoleNamesResponse
 import org.bazar.authorization.utils.extensions.mapper.toGetActionDto
 import java.util.*
 
@@ -48,8 +49,3 @@ fun buildGetActionsResponse(actions: List<ActionEntity>, attributes: List<Action
     }
     return GetActionsResponse(actionsDto)
 }
-
-fun buildGetRoleNamesResponse(userIdToRoleNameMap: Map<UUID, String>) =
-    GetRoleNamesResponse(
-        roles = userIdToRoleNameMap.map { GetRoleNameDto(it.value, it.key.toString()) }
-    )

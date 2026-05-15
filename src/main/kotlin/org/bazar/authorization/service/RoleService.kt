@@ -6,6 +6,7 @@ import org.bazar.authorization.database.entity.enums.RoleScope
 import org.bazar.authorization.database.repository.RoleRepository
 import org.bazar.authorization.database.repository.RolesActionsRepository
 import org.bazar.authorization.model.commands.CreateRoleCommand
+import org.bazar.authorization.model.commands.UpdateRoleCommand
 import org.bazar.authorization.utils.exceptions.ApiException
 import org.bazar.authorization.utils.exceptions.ApiExceptions
 import org.bazar.authorization.utils.extensions.mapper.toRoleEntity
@@ -16,7 +17,7 @@ class RoleService(
     private val rolesActionsRepository: RolesActionsRepository,
     private val roleRepository: RoleRepository
 ) {
-    
+
     suspend fun deleteAllByRoleIdsAndScope(roleIds: List<Long>, scope: RoleScope) = suspendTransaction {
         val roleIdsToDelete = roleRepository.getAllByScopeAndRoleIdsIn(scope, roleIds).map { it.id!! }
         rolesActionsRepository.deleteAll(roleIdsToDelete)
@@ -35,9 +36,9 @@ class RoleService(
         rolesActionsRepository.findAllByRoleId(roleId)
     }
 
-    suspend fun getRoleWithActionMappings(roleId: Long): RoleWithActionMappings  = suspendTransaction {
+    suspend fun getRoleWithActionMappings(roleId: Long): RoleWithActionMappings = suspendTransaction {
         val role = roleRepository.findById(roleId) ?: throw ApiException(ApiExceptions.NO_SUCH_ROLE, "roleId: $roleId")
-        val rolesActions =  rolesActionsRepository.findAllByRoleId(roleId)
+        val rolesActions = rolesActionsRepository.findAllByRoleId(roleId)
         role.toRoleWithActionMappings(rolesActions)
     }
 
@@ -62,6 +63,27 @@ class RoleService(
 
     suspend fun getRoleById(roleId: Long) = suspendTransaction {
         roleRepository.findById(roleId) ?: throw ApiException(ApiExceptions.NO_SUCH_ROLE, "roleId: $roleId")
+    }
+
+    suspend fun updateRole(command: UpdateRoleCommand) = suspendTransaction {
+        val roleInDb = roleRepository.findById(command.roleId) ?: throw ApiException(
+            ApiExceptions.NO_SUCH_ROLE,
+            "roleId: ${command.roleId}"
+        )
+
+        val updatedRole = roleRepository.update(command.toRoleEntity(roleInDb))
+
+        val roleActionMappingsToCreate = command.actionIdToAttributes.map {
+            RolesActionsEntity(
+                updatedRole.id!!,
+                it.key,
+                it.value,
+            )
+        }
+
+        val createdRoleActionMappings = rolesActionsRepository.saveAll(roleActionMappingsToCreate)
+
+        updatedRole.toRoleWithActionMappings(createdRoleActionMappings)
     }
 
 }

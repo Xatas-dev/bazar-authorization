@@ -1,6 +1,9 @@
 {
   "id": {{roleId}},
-  "name": "Custom",
+  "name": "TestRole",
+  "isVisible":true,
+  "createdBy":"00000000-0000-0000-0000-000000000001",
+  "spaceId": {{spaceId}},
   "actions": [
     {
       "id": 1,

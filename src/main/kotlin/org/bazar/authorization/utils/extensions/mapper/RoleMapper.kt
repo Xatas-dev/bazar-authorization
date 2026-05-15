@@ -6,39 +6,52 @@ import org.bazar.authorization.database.entity.RoleEntity
 import org.bazar.authorization.database.entity.RoleWithActionMappings
 import org.bazar.authorization.database.entity.enums.RoleScope
 import org.bazar.authorization.model.commands.CreateRoleCommand
+import org.bazar.authorization.model.commands.UpdateRoleCommand
 import org.bazar.authorization.model.rest.request.CreateRoleRequest
+import org.bazar.authorization.model.rest.request.PutRoleRequest
+import org.bazar.authorization.model.rest.request.SimpleActionDto
 import org.bazar.authorization.model.rest.response.GetActionWithAssignedAttributesDto
 import org.bazar.authorization.model.rest.response.GetAssignedActionAttributeDto
-import org.bazar.authorization.model.rest.response.GetSpaceUsersRoleResponse
+import org.bazar.authorization.model.rest.response.GetRolesResponse
 import org.bazar.authorization.utils.authorization.enums.KnownAttributes
 import org.bazar.authorization.utils.exceptions.ApiException
 import org.bazar.authorization.utils.exceptions.ApiExceptions
-import java.util.UUID
+import java.time.Instant
+import java.util.*
 
 fun CreateRoleRequest.toCreateRoleCommand(
     attributeEntities: List<ActionAttributeEntity>,
     loggedUserId: UUID
-): CreateRoleCommand {
-    val attrIdToNameMap = attributeEntities.associate { it.id to it.name }
+) = CreateRoleCommand(
+    name = this.name,
+    spaceId = this.spaceId,
+    scope = RoleScope.SPACE,
+    isVisible = this.isVisible,
+    createdBy = loggedUserId,
+    actionIdToAttributes = this.actions.toActionsWithAttributesMap(attributeEntities)
+)
 
-    val actionsWithAttributes = this.actions.associate { actionReq ->
-        val attrNameToValue = actionReq.attributes.associate { attr ->
-            attrIdToNameMap[attr.id]?.let { name -> name to attr.value }
-                ?: throw ApiException(ApiExceptions.NO_SUCH_ATTRIBUTE, "id = ${attr.id}")
-        }
+fun PutRoleRequest.toUpdateRoleCommand(
+    id: Long,
+    attributeEntities: List<ActionAttributeEntity>
+) = UpdateRoleCommand(
+    roleId = id,
+    name = this.name,
+    isVisible = this.isVisible,
+    actionIdToAttributes = this.actions.toActionsWithAttributesMap(attributeEntities)
+)
 
-        actionReq.id to attrNameToValue
-    }
-
-    return CreateRoleCommand(
-        name = this.name,
-        spaceId = this.spaceId,
-        scope = RoleScope.SPACE,
-        isVisible = this.isVisible,
-        createdBy = loggedUserId,
-        actionsWithAttributes
+fun UpdateRoleCommand.toRoleEntity(existingRole: RoleEntity) =
+    RoleEntity(
+        scope = existingRole.scope,
+        name = name,
+        isVisible = isVisible,
+        createdBy = existingRole.createdBy,
+        spaceId = existingRole.spaceId,
+        id = existingRole.id,
+        createdAt = existingRole.createdAt,
+        updatedAt = Instant.now()
     )
-}
 
 fun CreateRoleCommand.toRoleEntity() =
     RoleEntity(
@@ -52,13 +65,15 @@ fun CreateRoleCommand.toRoleEntity() =
 fun RoleWithActionMappings.toGetSpaceUsersRoleResponse(
     actions: List<ActionEntity>,
     actionAttributes: List<ActionAttributeEntity>
-): GetSpaceUsersRoleResponse {
+): GetRolesResponse {
     val actionIdToAttributes = actionAttributes.groupBy { it.actionId }
     val actionIdToAttributeValues = this.actionMappings.associate { it.actionId to it.assignedAttributes }
 
-    return GetSpaceUsersRoleResponse(
+    return GetRolesResponse(
         id = this.role.id!!,
         name = this.role.name,
+        isVisible = this.role.isVisible,
+        createdBy = this.role.createdBy.toString(),
         spaceId = this.role.spaceId,
         actions = actions.map {
             it.toGetActionWithAssignedAttributesDto(
@@ -70,6 +85,9 @@ fun RoleWithActionMappings.toGetSpaceUsersRoleResponse(
 }
 
 fun CreateRoleRequest.extractActionsToGrant() =
+    mapOf(KnownAttributes.ACTIONS_TO_GRANT.name.lowercase() to this.actions.map { it.id }.toString())
+
+fun PutRoleRequest.extractActionsToGrant() =
     mapOf(KnownAttributes.ACTIONS_TO_GRANT.name.lowercase() to this.actions.map { it.id }.toString())
 
 private fun ActionEntity.toGetActionWithAssignedAttributesDto(
@@ -104,3 +122,18 @@ private fun ActionAttributeEntity.toGetAssignedActionAttributeDto(value: String)
         valueType = this.valueType,
         value = value
     )
+
+private fun Iterable<SimpleActionDto>.toActionsWithAttributesMap(
+    attributeEntities: List<ActionAttributeEntity>
+): Map<Int, Map<String, String>> {
+    val attrIdToNameMap = attributeEntities.associate { it.id to it.name }
+
+    return this.associate { actionReq ->
+        val attrNameToValue = actionReq.attributes.associate { attr ->
+            val name = attrIdToNameMap[attr.id]
+                ?: throw ApiException(ApiExceptions.NO_SUCH_ATTRIBUTE, "id = ${attr.id}")
+            name to attr.value
+        }
+        actionReq.id to attrNameToValue
+    }
+}

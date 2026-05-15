@@ -20,6 +20,7 @@ class DefaultUserPrincipalAttributeExtractor(
         val roleId = context.authenticatedUser.roleId
 
         val roleMappings = roleService.getRoleActionMappings(roleId)
+        val role = roleService.getRoleById(roleId)
         val grantedActions = actionService.findAllByIds(roleMappings.map { it.actionId })
 
         val allowedActionKeys = grantedActions.map { "${it.resource}:${it.code}" }
@@ -39,6 +40,7 @@ class DefaultUserPrincipalAttributeExtractor(
             put("user_id", userId)
             put("allowed_actions", allowedActionKeys.toString())
             put("is_creator", context.authenticatedUser.isCreator.toString())
+            put("scope", role.scope.name)
             putAll(currentActionAttributes) // Добавляем grantable_actions / manageable_roles
         }
 

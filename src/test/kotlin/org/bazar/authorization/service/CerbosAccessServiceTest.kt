@@ -121,7 +121,9 @@ class CerbosAccessServiceTest : BaseIntegrationTest() {
                     stringValue("1")
                 )
             )
-        val resource = Resource.newInstance("roles").withAttribute("id", stringValue("1"))
+        val resource = Resource.newInstance("roles")
+            .withAttribute("id", stringValue("1"))
+            .withAttribute("scope", stringValue("SPACE"))
         val result = cerbosBlockingClient.check(principal, resource, "EDIT")
         assertEquals(true, result.isAllowed("EDIT"))
     }
@@ -155,6 +157,7 @@ class CerbosAccessServiceTest : BaseIntegrationTest() {
         val resource = Resource.newInstance("roles")
             .withAttribute("id", stringValue("1"))
             .withAttribute("created_by", stringValue("1111U"))
+            .withAttribute("scope", stringValue("SPACE"))
         val result = cerbosBlockingClient.check(principal, resource, "EDIT")
         assertEquals(true, result.isAllowed("EDIT"))
     }

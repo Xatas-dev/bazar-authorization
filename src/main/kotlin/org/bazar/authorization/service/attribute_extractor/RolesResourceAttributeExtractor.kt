@@ -7,14 +7,17 @@ class RolesResourceAttributeExtractor(
 ) : AttributeExtractor {
 
     override suspend fun extract(context: AttributeExtractionContext): AttributeExtractionContext {
-        val targetRole = roleService.getRoleById(context.resourceId.toLong())
-
-        context.resourceAttributes.apply {
-            targetRole.createdBy?.let {
-                put("created_by", it.toString())
+        if (context.resourceId != null) {
+            val targetRole = roleService.getRoleById(context.resourceId.toLong())
+            context.resourceAttributes.apply {
+                targetRole.createdBy?.let {
+                    put("created_by", it.toString())
+                }
+                put("scope", targetRole.scope.name)
+                put("id", targetRole.id.toString())
             }
-            put("scope", targetRole.scope.name)
         }
+
 
         return context
     }
