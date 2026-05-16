@@ -12,7 +12,8 @@ import org.bazar.authorization.model.rest.request.PutRoleRequest
 import org.bazar.authorization.model.rest.request.SimpleActionDto
 import org.bazar.authorization.model.rest.response.GetActionWithAssignedAttributesDto
 import org.bazar.authorization.model.rest.response.GetAssignedActionAttributeDto
-import org.bazar.authorization.model.rest.response.GetRolesResponse
+import org.bazar.authorization.model.rest.response.GetEnrichedRoleResponse
+import org.bazar.authorization.model.rest.response.GetRoleDto
 import org.bazar.authorization.utils.authorization.enums.KnownAttributes
 import org.bazar.authorization.utils.exceptions.ApiException
 import org.bazar.authorization.utils.exceptions.ApiExceptions
@@ -65,11 +66,11 @@ fun CreateRoleCommand.toRoleEntity() =
 fun RoleWithActionMappings.toGetSpaceUsersRoleResponse(
     actions: List<ActionEntity>,
     actionAttributes: List<ActionAttributeEntity>
-): GetRolesResponse {
+): GetEnrichedRoleResponse {
     val actionIdToAttributes = actionAttributes.groupBy { it.actionId }
     val actionIdToAttributeValues = this.actionMappings.associate { it.actionId to it.assignedAttributes }
 
-    return GetRolesResponse(
+    return GetEnrichedRoleResponse(
         id = this.role.id!!,
         name = this.role.name,
         isVisible = this.role.isVisible,
@@ -89,6 +90,11 @@ fun CreateRoleRequest.extractActionsToGrant() =
 
 fun PutRoleRequest.extractActionsToGrant() =
     mapOf(KnownAttributes.ACTIONS_TO_GRANT.name.lowercase() to this.actions.map { it.id }.toString())
+
+fun RoleEntity.toGetRoleDto() =
+    GetRoleDto(
+        id!!, name, spaceId!!, scope.name, isVisible, createdBy?.toString()
+    )
 
 private fun ActionEntity.toGetActionWithAssignedAttributesDto(
     attributes: List<ActionAttributeEntity>?,

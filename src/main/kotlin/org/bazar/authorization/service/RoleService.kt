@@ -23,15 +23,6 @@ class RoleService(
         rolesActionsRepository.deleteAll(roleIdsToDelete)
         roleRepository.deleteAll(roleIdsToDelete)
     }
-
-    suspend fun getRoleActionMappings(roleId: Long, actionId: Int) = suspendTransaction {
-        rolesActionsRepository.findByRoleIdAndActionId(roleId, actionId)
-            ?: throw ApiException(
-                ApiExceptions.NO_SUCH_ACTION_IN_ROLE,
-                "roleId: $roleId, not found actionId: $actionId"
-            )
-    }
-
     suspend fun getRoleActionMappings(roleId: Long) = suspendTransaction {
         rolesActionsRepository.findAllByRoleId(roleId)
     }
@@ -59,6 +50,10 @@ class RoleService(
 
     suspend fun getAllRolesByIds(roleIds: Collection<Long>) = suspendTransaction {
         roleRepository.getAllByRoleIdsIn(roleIds.distinct())
+    }
+
+    suspend fun getAllRolesInSpace(spaceId: Long) = suspendTransaction {
+        roleRepository.findAllRolesBySpaceId(spaceId)
     }
 
     suspend fun getRoleById(roleId: Long) = suspendTransaction {

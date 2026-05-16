@@ -12,6 +12,7 @@ import org.bazar.authorization.model.rest.request.CreateRoleRequest
 import org.bazar.authorization.model.rest.request.PutRoleRequest
 import org.bazar.authorization.model.rest.request.SimpleActionDto
 import org.bazar.authorization.model.rest.response.GetRoleNamesResponse
+import org.bazar.authorization.model.rest.response.GetEnrichedRoleResponse
 import org.bazar.authorization.model.rest.response.GetRolesResponse
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -30,6 +31,27 @@ class RolesControllerTest : BaseWebTest() {
     }
 
     @Test
+    @DisplayName("GET /api/v1/roles, requester is a creator, should return all roles in space")
+    fun requesterWithCreatorRole_shouldGetAllSpaceRoles() = webTest {
+        val spaceId = randomSpaceId()
+
+        initDataHelper.createRole(spaceId)
+        initDataHelper.createRole(spaceId)
+
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = DEFAULT_USER_ROLE_ID, isCreator = true)
+
+        val response = client.get("/api/v1/roles") {
+            header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
+            parameter("spaceId", spaceId)
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val responseDto = response.body<GetRolesResponse>()
+
+        assertThat(responseDto.roles).hasSize(2)
+    }
+
+    @Test
     @DisplayName("Two users in space, requester is creator, should read target role successfully")
     fun requesterWithCreatorRole_shouldReadTargetRole() = webTest {
         val spaceId = randomSpaceId()
@@ -38,8 +60,9 @@ class RolesControllerTest : BaseWebTest() {
         initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = DEFAULT_USER_ROLE_ID, isCreator = true)
         initDataHelper.createSpaceUser(spaceId, targetUserId, roleId = DEFAULT_USER_ROLE_ID, isCreator = false)
 
-        val response = client.get("/api/v1/roles?spaceId=$spaceId&roleId=$DEFAULT_USER_ROLE_ID") {
+        val response = client.get("/api/v1/roles/$DEFAULT_USER_ROLE_ID") {
             header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
+            parameter("spaceId", spaceId)
         }
 
         assertEquals(HttpStatusCode.OK, response.status)
@@ -57,8 +80,9 @@ class RolesControllerTest : BaseWebTest() {
         initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = DEFAULT_USER_ROLE_ID, isCreator = false)
         initDataHelper.createSpaceUser(spaceId, targetUserId, roleId = DEFAULT_USER_ROLE_ID, isCreator = false)
 
-        val response = client.get("/api/v1/roles?spaceId=$spaceId&roleId=$DEFAULT_USER_ROLE_ID") {
+        val response = client.get("/api/v1/roles/$DEFAULT_USER_ROLE_ID") {
             header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
+            parameter("spaceId", spaceId)
         }
 
         assertEquals(HttpStatusCode.Forbidden, response.status)
@@ -77,8 +101,9 @@ class RolesControllerTest : BaseWebTest() {
         initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = DEFAULT_USER_ROLE_ID, isCreator = true)
         initDataHelper.createSpaceUser(spaceId, targetUserId, roleId = customRoleId, isCreator = false)
 
-        val response = client.get("/api/v1/roles?spaceId=$spaceId&roleId=$customRoleId") {
+        val response = client.get("/api/v1/roles/$customRoleId") {
             header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
+            parameter("spaceId", spaceId)
         }
 
         assertEquals(HttpStatusCode.OK, response.status)
@@ -164,64 +189,6 @@ class RolesControllerTest : BaseWebTest() {
     }
 
     @Test
-    @DisplayName("Requester is space participant, GET /space-users/role-names should return expected OK response")
-    fun getRoleNames_shouldReturnOk() = webTest {
-        //given
-        val spaceId = randomSpaceId()
-        val userIds = List(5) { UUID.randomUUID() }
-        val roleIds = List(3) { initDataHelper.createRole(spaceId) }
-
-        val userIdToRoleIdMap = userIds.mapIndexed { index, userId ->
-            userId to roleIds.getOrElse(index) { 1L }
-        }.toMap()
-
-        userIdToRoleIdMap.forEach {
-            initDataHelper.createSpaceUser(spaceId, it.key, it.value, isCreator = false)
-        }
-
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, DEFAULT_USER_ROLE_ID, isCreator = true)
-
-        //when
-        val response = client.get("/api/v1/role-names") {
-            header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
-            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-            parameter("spaceId", spaceId)
-            userIds.forEach { userId -> parameter("userIds", userId) }
-        }
-        //then
-        assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals(5, response.body<GetRoleNamesResponse>().roles.size)
-    }
-
-    @Test
-    @DisplayName("Requester is NOT space participant, GET /space-users/role-names should return 403")
-    fun getRoleNames_shouldReturnForbidden() = webTest {
-        //given
-        val spaceId = randomSpaceId()
-        val userIds = List(5) { UUID.randomUUID() }
-        val roleIds = List(3) { initDataHelper.createRole(spaceId) }
-
-        val userIdToRoleIdMap = userIds.mapIndexed { index, userId ->
-            userId to roleIds.getOrElse(index) { DEFAULT_USER_ROLE_ID }
-        }.toMap()
-
-        userIdToRoleIdMap.forEach {
-            initDataHelper.createSpaceUser(spaceId, it.key, it.value, isCreator = false)
-        }
-
-
-        //when
-        val response = client.get("/api/v1/role-names") {
-            header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
-            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-            parameter("spaceId", spaceId)
-            userIds.forEach { userId -> parameter("userIds", userId) }
-        }
-        //then
-        assertEquals(HttpStatusCode.Forbidden, response.status)
-    }
-
-    @Test
     @DisplayName("Space role exist, user has rights to edit this role, should return OK")
     fun putRoles_roleExistUserHasRights_shouldReturnOk() = webTest {
         //given
@@ -257,7 +224,7 @@ class RolesControllerTest : BaseWebTest() {
         }
         //then
         assertEquals(HttpStatusCode.OK, response.status)
-        val responseDto = response.body<GetRolesResponse>()
+        val responseDto = response.body<GetEnrichedRoleResponse>()
 
         assertThat(responseDto)
             .isNotNull
@@ -330,7 +297,7 @@ class RolesControllerTest : BaseWebTest() {
         }
         //then
         assertEquals(HttpStatusCode.OK, response.status)
-        val responseDto = response.body<GetRolesResponse>()
+        val responseDto = response.body<GetEnrichedRoleResponse>()
 
         assertThat(responseDto)
             .isNotNull

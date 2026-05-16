@@ -41,4 +41,16 @@ class SpaceUsersController(
         call.respond(HttpStatusCode.OK)
     }
 
+    fun Route.getRoleNames() = get("/space-users/roles") {
+        val userIds = call.queryParameters.getOrFail<List<UUID>>("userIds")
+        val spaceId = call.queryParameters.getOrFail<Long>("spaceId")
+        val requesterId = call.getAuthenticatedUserId()
+
+        authorizationService.checkIfUserInSpace(requesterId, spaceId)
+
+        call.respond(
+            spaceUserApiService.getRoleNames(spaceId, userIds)
+        )
+    }
+
 }

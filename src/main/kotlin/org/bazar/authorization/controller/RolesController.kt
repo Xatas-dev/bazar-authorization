@@ -22,7 +22,28 @@ class RolesController(
 
     fun Route.getRoles() = get("/roles") {
         val spaceId = call.queryParameters.getOrFail<Long>("spaceId")
-        val roleId = call.queryParameters.getOrFail<Long>("roleId")
+        val requesterId = call.getAuthenticatedUserId()
+
+        val authorizeCommand = buildAuthorizationCommand(
+            spaceId,
+            requesterId,
+            "roles",
+            "READ"
+        )
+
+        if (!authorizationService.authorize(authorizeCommand)
+        ) {
+            throw ApiException(ApiExceptions.INSUFFICIENT_PERMISSIONS, "Denied for ${call.request.path()}")
+        }
+
+        call.respond(
+            message = rolesApiService.getRoles(spaceId)
+        )
+    }
+
+    fun Route.getSingleEnrichedRole() = get("/roles/{roleId}") {
+        val spaceId = call.queryParameters.getOrFail<Long>("spaceId")
+        val roleId = call.pathParameters.getOrFail<Long>("roleId")
         val requesterId = call.getAuthenticatedUserId()
 
         val authorizeCommand = buildAuthorizationCommand(
@@ -39,18 +60,6 @@ class RolesController(
 
         call.respond(
             message = rolesApiService.getRoleWithActionsAndAttributes(roleId)
-        )
-    }
-
-    fun Route.getRoleNames() = get("/role-names") {
-        val userIds = call.queryParameters.getOrFail<List<UUID>>("userIds")
-        val spaceId = call.queryParameters.getOrFail<Long>("spaceId")
-        val requesterId = call.getAuthenticatedUserId()
-
-        authorizationService.checkIfUserInSpace(requesterId, spaceId)
-
-        call.respond(
-            rolesApiService.getRoleNames(spaceId, userIds)
         )
     }
 

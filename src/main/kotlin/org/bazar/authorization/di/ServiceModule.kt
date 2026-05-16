@@ -18,8 +18,8 @@ fun serviceModule() = module {
     single { SpaceUserService(get()) }
     single { ActionAttributeService(get()) }
     single { ActionApiService(get(), get()) }
-    single { SpaceUserApiService(get()) }
-    single { RolesApiService(get(), get(), get(), get()) }
+    single { SpaceUserApiService(get(), get()) }
+    single { RolesApiService(get(), get(), get()) }
 
     single<AttributeExtractor>(named("defaultUserPrincipalAttributeExtractor")) {
         DefaultUserPrincipalAttributeExtractor(

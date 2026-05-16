@@ -21,12 +21,13 @@ fun Application.configureRoutes() {
                 }
                 with(roleController) {
                     getRoles()
+                    getSingleEnrichedRole()
                     createRole()
-                    getRoleNames()
                     putRole()
                 }
                 with(spaceUsersController) {
                     patchSpaceUsersRole()
+                    getRoleNames()
                 }
             }
         }

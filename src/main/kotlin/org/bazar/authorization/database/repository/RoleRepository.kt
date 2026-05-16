@@ -58,6 +58,12 @@ class RoleRepository {
             .map { it.toRoleEntity() }
     }
 
+    suspend fun findAllRolesBySpaceId(spaceId: Long): List<RoleEntity> = suspendTransaction {
+        Roles.selectAll()
+            .where { Roles.spaceId eq spaceId }
+            .map { it.toRoleEntity() }
+    }
+
     suspend fun findById(id: Long): RoleEntity? = suspendTransaction {
         Roles.selectAll()
             .where { Roles.id eq id }

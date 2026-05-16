@@ -2,7 +2,7 @@ import com.google.protobuf.gradle.id
 
 plugins {
     kotlin("jvm") version "2.3.10"
-    id("io.ktor.plugin") version "3.4.0"
+    id("io.ktor.plugin") version "3.4.3"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.3.0"
     id("com.google.protobuf") version "0.9.5" // For gRPC
 }
@@ -10,7 +10,7 @@ plugins {
 group = "org.bazar"
 version = "1.0.2"
 
-val ktorVersion = "3.4.0"
+val ktorVersion = "3.4.3"
 val exposedVersion = "1.2.0"
 val logbackVersion = "1.5.13"
 val hikariCpVersion = "7.0.2"
