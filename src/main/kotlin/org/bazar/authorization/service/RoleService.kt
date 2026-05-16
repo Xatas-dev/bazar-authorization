@@ -75,7 +75,7 @@ class RoleService(
                 it.value,
             )
         }
-
+        rolesActionsRepository.deleteAll(listOf(updatedRole.id!!))
         val createdRoleActionMappings = rolesActionsRepository.saveAll(roleActionMappingsToCreate)
 
         updatedRole.toRoleWithActionMappings(createdRoleActionMappings)
