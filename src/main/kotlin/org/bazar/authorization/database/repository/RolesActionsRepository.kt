@@ -7,6 +7,7 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.batchInsert
+import org.jetbrains.exposed.v1.jdbc.batchUpsert
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -16,12 +17,6 @@ class RolesActionsRepository {
 
     fun deleteAll(roleIds: List<Long>): Int {
         return RolesActions.deleteWhere { RolesActions.role inList roleIds }
-    }
-
-    fun findByRoleIdAndActionId(roleId: Long, actionId: Int): RolesActionsEntity? {
-        return RolesActions.selectAll()
-            .where { (RolesActions.role eq roleId) and (RolesActions.action eq actionId) }
-            .singleOrNull()?.toRolesActionsEntity()
     }
 
     fun save(entity: RolesActionsEntity) {
@@ -35,7 +30,11 @@ class RolesActionsRepository {
     }
 
     suspend fun saveAll(entities: List<RolesActionsEntity>) = suspendTransaction {
-        RolesActions.batchInsert(entities) {
+        RolesActions.batchUpsert(
+            data = entities,
+            RolesActions.role, RolesActions.action,
+            onUpdateExclude = listOf(RolesActions.createdAt)
+        ) {
             this[RolesActions.role] = it.roleId
             this[RolesActions.action] = it.actionId
             this[RolesActions.assignedAttribute] = it.assignedAttributes
