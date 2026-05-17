@@ -12,5 +12,6 @@ data class GetRoleNameDto(
     val id: Long,
     val name: String,
     val userId: String,
-    val isVisible: Boolean
+    val isVisible: Boolean,
+    val isCreator: Boolean
 )

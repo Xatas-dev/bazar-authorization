@@ -32,7 +32,8 @@ class SpaceUserApiService(
                     id = role.id!!,
                     name = role.name,
                     userId = user.userId.toString(),
-                    isVisible = role.isVisible
+                    isVisible = role.isVisible,
+                    isCreator = user.isCreator
                 )
             } else {
                 logger.warn("roleId=${user.roleId} not found for user ${user.userId}")
