@@ -14,7 +14,7 @@ resourcePolicy:
               - expr: >
                   has(P.attr.allowed_actions) && (
                     'roles:READ' in P.attr.allowed_actions || 
-                    (has(P.attr.role_id) && has(R.id) && P.attr.role_id == R.id)
+                    (has(P.attr.role_id) && has(R.attr.id) && P.attr.role_id == R.attr.id)
                   )
 
     - actions: [ CREATE ]
