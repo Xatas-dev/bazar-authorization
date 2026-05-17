@@ -1,0 +1,24 @@
+{
+  "id": {{roleId}},
+  "name": "TestRole",
+  "isVisible":true,
+  "createdBy":"00000000-0000-0000-0000-000000000001",
+  "spaceId": {{spaceId}},
+  "actions": [
+    {
+      "id": 1,
+      "code": "WRITE",
+      "name": "Редактировать спейс",
+      "resource": "space",
+      "attributes": []
+    },
+    {
+      "id": 2,
+      "code": "DELETE",
+      "name": "Удалять спейс",
+      "resource": "space",
+      "attributes": []
+    }
+  ]
+}
+

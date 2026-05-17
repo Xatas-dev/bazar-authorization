@@ -1,33 +1,29 @@
-spring:
-  datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/bzrauthz}
-    username: ${DB_USER:postgres}
-    password: ${DB_PASS:postgres}
-  liquibase:
-    change-log: db/changelog/changelog-master.yaml
-  grpc:
-    server:
-      port: ${GRPC_SERVER_PORT:9090}
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${KC_URL:localhost:9999}/realms/${KC_REALM:bazar-realm}
-  threads:
-    virtual:
-      enabled: true
+ktor:
+  deployment:
+    port: 8080
+  application:
+    modules:
+      - org.bazar.authorization.BazarAuthorizationApplicationKt.module
+grpc:
+  port: 9090
+profile: ${PROFILE:PROD}
+db:
+  jdbcUrl: ${DB_URL:jdbc:postgresql://localhost:5432/bzrauthz}
+  user: ${DB_USER:postgres}
+  password: ${DB_PASS:postgres}
+  logSqlQueries: false
+  runMigrations: true
+
+auth:
+  issuer: ${KC_ISSUER_URL:http://localhost:9999/realms/bazar-realm}
+  jwkUrl: ${KC_JWK_URL:http://localhost:9999/realms/bazar-realm/protocol/openid-connect/certs}
+  realm: "bazar-realm"
+  audience: ${KC_AUDIENCE:bazar-authorization}
+
 cerbos:
-  url: ${CERBOS_URL:localhost:3093}
+  url: ${CERBOS_URL:localhost:3593}
 logging:
   level:
+    root: INFO
     org:
-      bazar: ${LOGGING_LEVEL:DEBUG}
-server:
-  port: 8090
-  tomcat:
-    threads:
-      max: 20
-      min-spare: 5
-management:
-  server:
-    port: 8090
+      bazar: ${LOGGING_LEVEL:INFO}

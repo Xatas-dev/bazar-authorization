@@ -1,11 +1,26 @@
-spring:
-  liquibase:
-    change-log: db/changelog/changelog-master.yaml
-  jpa:
-    show-sql: true
-  grpc:
-    server:
-      port: 0
-    client:
-      default-channel:
-        address: 0.0.0.0:\${local.grpc.port}
+ktor:
+  deployment:
+    port: 8090
+grpc:
+  port: 9090
+profile: TEST
+db:
+  jdbcUrl: dummy
+  user: dummy
+  password: dummy
+  logSqlQueries: true
+  runMigrations: false
+auth:
+  issuer: dummy
+  jwkUrl: dummy
+  realm: dummy
+  audience: dummy
+cerbos:
+  url: dummy
+logging:
+  level:
+    root: INFO
+    org:
+      bazar: DEBUG
+    jetbrains:
+      exposed: DEBUG

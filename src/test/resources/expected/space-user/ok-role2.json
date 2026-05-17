@@ -1,0 +1,30 @@
+{
+  "id": 1,
+  "name": "Дефолтыч",
+  "isVisible":false,
+  "createdBy":"null",
+  "actions": [
+    {
+      "id": 3,
+      "code": "READ",
+      "name": "Читать сообщения в чате",
+      "resource": "chat_messages",
+      "attributes": []
+    },
+    {
+      "id": 4,
+      "code": "WRITE",
+      "name": "Писать в чат",
+      "resource": "chat_messages",
+      "attributes": []
+    },
+    {
+      "id": 6,
+      "code": "ADD",
+      "name": "Добавлять новых пользователей в спейс",
+      "resource": "space_user",
+      "attributes": []
+    }
+  ]
+}
+

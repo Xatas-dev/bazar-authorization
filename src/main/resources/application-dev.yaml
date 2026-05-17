@@ -1,9 +1,0 @@
-spring:
-  jpa:
-    show-sql: true
-logging:
-  level:
-    org:
-      bazar: ${LOGGING_LEVEL}
-      springframework:
-        security: debug
