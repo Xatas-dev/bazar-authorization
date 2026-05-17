@@ -50,7 +50,8 @@ class RolesController(
             spaceId,
             requesterId,
             "roles",
-            "READ"
+            "READ",
+            resourceId = roleId.toString()
         )
 
         if (!authorizationService.authorize(authorizeCommand)

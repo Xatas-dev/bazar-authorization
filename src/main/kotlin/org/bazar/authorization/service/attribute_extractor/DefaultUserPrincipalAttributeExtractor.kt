@@ -38,6 +38,7 @@ class DefaultUserPrincipalAttributeExtractor(
 
         context.principalAttributes.apply {
             put("user_id", userId)
+            put("role_id", roleId.toString())
             put("allowed_actions", allowedActionKeys.toString())
             put("is_creator", context.authenticatedUser.isCreator.toString())
             put("scope", role.scope.name)
