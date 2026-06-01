@@ -7,6 +7,7 @@ data class ActionEntity(
     val code: String,
     val name: String,
     val resource: String,
+    val resourceName: String,
     val createdAt: Instant = Instant.now(),
     var updatedAt: Instant = Instant.now()
 )

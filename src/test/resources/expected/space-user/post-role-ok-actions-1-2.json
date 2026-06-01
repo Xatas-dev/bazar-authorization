@@ -10,6 +10,7 @@
       "code": "WRITE",
       "name": "Редактировать спейс",
       "resource": "space",
+      "resourceName": "Спейс",
       "attributes": []
     },
     {
@@ -17,6 +18,7 @@
       "code": "DELETE",
       "name": "Удалять спейс",
       "resource": "space",
+      "resourceName": "Спейс",
       "attributes": []
     }
   ]

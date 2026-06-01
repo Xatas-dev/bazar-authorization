@@ -116,6 +116,7 @@ private fun ActionEntity.toGetActionWithAssignedAttributesDto(
         code = this.code,
         name = this.name,
         resource = this.resource,
+        resourceName = this.resourceName,
         attributes = assignedAttributes
     )
 }

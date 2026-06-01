@@ -29,4 +29,7 @@ databaseChangeLog:
   - include:
       file: 202604012-00-0-drop-deprecated-tables.sql
       relativeToChangelogFile: true
+  - include:
+      file: 20260601-00-1-add-resource-name-column.sql
+      relativeToChangelogFile: true
 
