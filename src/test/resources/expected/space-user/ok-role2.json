@@ -9,6 +9,7 @@
       "code": "READ",
       "name": "Читать сообщения в чате",
       "resource": "chat_messages",
+      "resourceName": "Чат",
       "attributes": []
     },
     {
@@ -16,6 +17,7 @@
       "code": "WRITE",
       "name": "Писать в чат",
       "resource": "chat_messages",
+      "resourceName": "Чат",
       "attributes": []
     },
     {
@@ -23,6 +25,7 @@
       "code": "ADD",
       "name": "Добавлять новых пользователей в спейс",
       "resource": "space_user",
+      "resourceName": "Пользователи",
       "attributes": []
     }
   ]

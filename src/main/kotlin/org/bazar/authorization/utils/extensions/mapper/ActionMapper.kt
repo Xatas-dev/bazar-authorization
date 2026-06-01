@@ -20,6 +20,7 @@ fun ActionEntity.toGetActionDto(attributes: List<ActionAttributeEntity>): GetAct
         code = this.code,
         name = this.name,
         resource = this.resource,
+        resourceName = this.resourceName,
         attributes = attributes.map { it.toGetActionAttributeDto() }
     )
 }
