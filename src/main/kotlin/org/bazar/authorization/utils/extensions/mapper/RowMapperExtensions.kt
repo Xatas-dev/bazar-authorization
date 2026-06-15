@@ -12,6 +12,7 @@ fun ResultRow.toActionEntity(): ActionEntity {
         code = this[Actions.code],
         name = this[Actions.name],
         resource = this[Actions.resource],
+        resourceName = this[Actions.resourceName],
         createdAt = this[Actions.createdAt],
         updatedAt = this[Actions.updatedAt]
     )

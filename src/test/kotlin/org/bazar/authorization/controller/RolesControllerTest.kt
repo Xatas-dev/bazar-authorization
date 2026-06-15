@@ -72,15 +72,14 @@ class RolesControllerTest : BaseWebTest() {
     }
 
     @Test
-    @DisplayName("Two users in space, requester has role = Дефолтыч, should get forbidden")
+    @DisplayName("Custom role exist in space, requester has role = Дефолтыч, should get forbidden")
     fun requesterWithLimitedRole_shouldGetForbidden() = webTest {
         val spaceId = randomSpaceId()
-        val targetUserId = UUID.fromString("00000000-0000-0000-0000-000000000003")
 
+        val createdRoleId = initDataHelper.createRole(spaceId)
         initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = DEFAULT_USER_ROLE_ID, isCreator = false)
-        initDataHelper.createSpaceUser(spaceId, targetUserId, roleId = DEFAULT_USER_ROLE_ID, isCreator = false)
 
-        val response = client.get("/api/v1/roles/$DEFAULT_USER_ROLE_ID") {
+        val response = client.get("/api/v1/roles/$createdRoleId") {
             header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
             parameter("spaceId", spaceId)
         }

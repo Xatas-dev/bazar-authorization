@@ -8,5 +8,6 @@ data class GetActionDto(
     val code: String,
     val name: String,
     val resource: String,
+    val resourceName: String,
     val attributes: List<GetActionAttributeDto>
 )

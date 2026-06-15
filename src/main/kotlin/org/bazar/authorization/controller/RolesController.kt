@@ -36,9 +36,7 @@ class RolesController(
             throw ApiException(ApiExceptions.INSUFFICIENT_PERMISSIONS, "Denied for ${call.request.path()}")
         }
 
-        call.respond(
-            message = rolesApiService.getRoles(spaceId)
-        )
+        call.respond(rolesApiService.getRoles(spaceId))
     }
 
     fun Route.getSingleEnrichedRole() = get("/roles/{roleId}") {
@@ -59,9 +57,7 @@ class RolesController(
             throw ApiException(ApiExceptions.INSUFFICIENT_PERMISSIONS, "Denied for ${call.request.path()}")
         }
 
-        call.respond(
-            message = rolesApiService.getRoleWithActionsAndAttributes(roleId)
-        )
+        call.respond(rolesApiService.getRoleWithActionsAndAttributes(roleId))
     }
 
     fun Route.createRole() = post("/roles") {
