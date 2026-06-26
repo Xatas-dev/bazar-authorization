@@ -27,6 +27,14 @@
       "resource": "space_user",
       "resourceName": "Пользователи",
       "attributes": []
+    },
+    {
+      "id":13,
+      "code":"DOWNLOAD",
+      "name":"Скачивать файлы",
+      "resource":"nodes",
+      "resourceName":"Файлы",
+      "attributes":[]
     }
   ]
 }
