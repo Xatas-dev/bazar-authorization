@@ -29,11 +29,19 @@
       "attributes": []
     },
     {
-      "id":13,
+      "id":12,
+      "code":"READ",
+      "name":"Смотреть файлы в хранилище",
+      "resource":"storage_node",
+      "resourceName":"Хранилище",
+      "attributes":[]
+    },
+    {
+      "id":14,
       "code":"DOWNLOAD",
-      "name":"Скачивать файлы",
-      "resource":"nodes",
-      "resourceName":"Файлы",
+      "name":"Скачивать файлы из хранилища",
+      "resource":"storage_node",
+      "resourceName":"Хранилище",
       "attributes":[]
     }
   ]
