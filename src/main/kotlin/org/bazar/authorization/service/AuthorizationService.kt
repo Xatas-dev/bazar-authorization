@@ -5,6 +5,8 @@ import org.bazar.authorization.model.commands.AuthorizeCommand
 import org.bazar.authorization.service.attribute_extractor.AttributeExtractionContext
 import org.bazar.authorization.service.attribute_extractor.AttributeExtractor
 import org.bazar.authorization.utils.extensions.builder.buildAuthorizationRequest
+import org.bazar.authorization.utils.logger
+import org.slf4j.Logger
 import java.util.*
 
 class AuthorizationService(
@@ -12,6 +14,8 @@ class AuthorizationService(
     private val cerbosAccessService: CerbosAccessService,
     private val attributeExtractors: List<AttributeExtractor>
 ) {
+
+    private val logger: Logger = logger()
 
     /**
      * Main authorization method.
@@ -41,6 +45,7 @@ class AuthorizationService(
                 finalContext.resourceAttributes
             )
 
+        logger.debug("Checking access for request: {}", authzRequest.toString())
         return cerbosAccessService.checkAccess(authzRequest)
 
     }
