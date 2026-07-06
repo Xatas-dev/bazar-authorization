@@ -27,6 +27,22 @@
       "resource": "space_user",
       "resourceName": "Пользователи",
       "attributes": []
+    },
+    {
+      "id":12,
+      "code":"READ",
+      "name":"Смотреть файлы в хранилище",
+      "resource":"storage_node",
+      "resourceName":"Хранилище",
+      "attributes":[]
+    },
+    {
+      "id":14,
+      "code":"DOWNLOAD",
+      "name":"Скачивать файлы из хранилища",
+      "resource":"storage_node",
+      "resourceName":"Хранилище",
+      "attributes":[]
     }
   ]
 }
