@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - include:
+      file: 20260805-00-0-insert-messages-action-update.sql
+      relativeToChangelogFile: true
+  - include:
+      file: 20260805-00-1-insert-messages-global-role.sql
+      relativeToChangelogFile: true
+
