@@ -33,7 +33,7 @@ val liquibaseTestVersion = "5.0.1"
 val swaggerGeneratorVersion = "1.0.36"
 
 application {
-    mainClass = "org.bazar.authorization.BazarAuthorizationApplicationKt"
+    mainClass = "org.bazar.authorization.infrastructure.BazarAuthorizationApplicationKt"
 }
 
 repositories {
@@ -100,6 +100,7 @@ dependencies {
     testImplementation("io.grpc:grpc-inprocess:$grpcNettyVersion")
     testImplementation("org.assertj:assertj-core:3.27.3")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.12.0")
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.4.0")
 }
 
 ktor {
