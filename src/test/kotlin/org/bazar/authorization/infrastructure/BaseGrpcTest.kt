@@ -5,18 +5,17 @@ import io.grpc.ManagedChannelBuilder
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import org.assertj.core.api.Assertions.assertThat
-import org.bazar.authorization.config.AppConfig
-import org.bazar.authorization.database.repository.ActionRepository
-import org.bazar.authorization.database.repository.RoleRepository
-import org.bazar.authorization.database.repository.RolesActionsRepository
-import org.bazar.authorization.database.repository.SpaceUserRepository
+import org.bazar.authorization.adapter.outbound.role.persistence.RoleRepositoryAdapter
+import org.bazar.authorization.adapter.outbound.role.persistence.RolesActionsRepositoryAdapter
+import org.bazar.authorization.adapter.outbound.spaceuser.persistence.SpaceUserRepositoryAdapter
 import org.bazar.authorization.grpc.AuthorizationAdminServiceGrpc
 import org.bazar.authorization.grpc.AuthorizationAdminServiceGrpc.AuthorizationAdminServiceBlockingStub
 import org.bazar.authorization.grpc.AuthorizationServiceGrpc
 import org.bazar.authorization.grpc.AuthorizationServiceGrpc.AuthorizationServiceBlockingStub
+import org.bazar.authorization.infrastructure.config.AppConfig
 import org.junit.jupiter.api.assertThrows
 import org.koin.test.inject
-import java.util.*
+import java.util.UUID
 import kotlin.math.abs
 
 abstract class BaseGrpcTest : BaseIntegrationTest() {
@@ -26,10 +25,9 @@ abstract class BaseGrpcTest : BaseIntegrationTest() {
     protected lateinit var adminStub: AuthorizationAdminServiceBlockingStub
     protected lateinit var stub: AuthorizationServiceBlockingStub
     private val appConfig: AppConfig by inject()
-    protected val spaceUserRepository by inject<SpaceUserRepository>()
-    protected val rolesActionsRepository by inject<RolesActionsRepository>()
-    protected val roleRepository by inject<RoleRepository>()
-    protected val actionsRepository by inject<ActionRepository>()
+    protected val spaceUserRepository by inject<SpaceUserRepositoryAdapter>()
+    protected val rolesActionsRepository by inject<RolesActionsRepositoryAdapter>()
+    protected val roleRepository by inject<RoleRepositoryAdapter>()
 
     fun grpcTest(
         block: suspend () -> Unit

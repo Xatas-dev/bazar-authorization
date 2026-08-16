@@ -1,7 +1,7 @@
 package org.bazar.authorization.infrastructure.config
 
 import dev.cerbos.sdk.CerbosContainer
-import org.bazar.authorization.utils.logger
+import org.bazar.authorization.infrastructure.util.logger
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
