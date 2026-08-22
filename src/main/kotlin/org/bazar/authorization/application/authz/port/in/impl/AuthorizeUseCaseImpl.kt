@@ -4,7 +4,7 @@ import org.bazar.authorization.application.authz.port.`in`.AuthorizeUseCase
 import org.bazar.authorization.application.shared.AttributeExtractionContext
 import org.bazar.authorization.application.shared.AttributeExtractor
 import org.bazar.authorization.application.shared.port.out.AccessPolicyChecker
-import org.bazar.authorization.application.spaceuser.port.out.SpaceUserRepositoryPort
+import org.bazar.authorization.application.spaceuser.port.SpaceUserLazyFallbackResolver
 import org.bazar.authorization.domain.authz.AuthorizationCheck
 import org.bazar.authorization.domain.exception.DomainErrors
 import org.bazar.authorization.domain.exception.DomainException
@@ -14,16 +14,16 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 class AuthorizeUseCaseImpl(
-    private val spaceUserRepositoryPort: SpaceUserRepositoryPort,
     private val accessPolicyChecker: AccessPolicyChecker,
-    private val attributeExtractors: List<AttributeExtractor>
+    private val attributeExtractors: List<AttributeExtractor>,
+    private val spaceUserResolver: SpaceUserLazyFallbackResolver
 ) : AuthorizeUseCase {
 
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
 
     override suspend fun execute(check: AuthorizationCheck): Boolean {
         val finalCheck = suspendTransaction {
-            val spaceUser = spaceUserRepositoryPort.findBySpaceIdAndUserId(check.spaceId, check.loggedInUserId)
+            val spaceUser = spaceUserResolver.findOrResolveExternally(check.spaceId, check.loggedInUserId)
                 ?: throw DomainException(
                     DomainErrors.NO_SUCH_USER_IN_SPACE,
                     "spaceId: ${check.spaceId}, userId: ${check.loggedInUserId}"

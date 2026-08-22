@@ -6,7 +6,8 @@ data class AppConfig(
     val grpc: GrpcConfig,
     val cerbos: CerbosConfig,
     val profile: Profile,
-    val logging: LoggingConfig
+    val logging: LoggingConfig,
+    val http: HttpConfig,
 )
 
 data class LoggingConfig(var level: Map<String, String> = emptyMap())
@@ -21,3 +22,6 @@ data class DatabaseConfig(
 data class AuthConfig(var issuer: String, var jwkUrl: String)
 data class GrpcConfig(var port: Int)
 data class CerbosConfig(var url: String)
+data class HttpConfig(
+    var bazarSpaceUrl: String
+)

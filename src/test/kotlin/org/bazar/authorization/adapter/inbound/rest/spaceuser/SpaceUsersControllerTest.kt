@@ -3,16 +3,26 @@ package org.bazar.authorization.adapter.inbound.rest.spaceuser
 import io.ktor.client.call.body
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
+import junit.framework.TestCase.assertTrue
 import org.bazar.authorization.infrastructure.BaseWebTest
 import org.bazar.authorization.adapter.inbound.rest.dto.response.GetRoleNamesResponse
+import org.bazar.authorization.adapter.outbound.http.BazarSpaceHttpClient
+import org.bazar.authorization.adapter.outbound.http.BazarSpaceUserResponse
+import org.bazar.authorization.adapter.outbound.spaceuser.persistence.SpaceUsers.userId
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.koin.core.component.inject
 import java.util.*
 import kotlin.math.abs
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 class SpaceUsersControllerTest : BaseWebTest() {
 
+    val bazarSpaceClientMock by inject<BazarSpaceHttpClient>()
 
     companion object {
         private const val DEFAULT_USER_ROLE_ID = 1L
@@ -117,12 +127,13 @@ class SpaceUsersControllerTest : BaseWebTest() {
         }
         //then
         assertEquals(HttpStatusCode.OK, response.status)
+        coVerify(exactly = 0) { bazarSpaceClientMock.getSpaceUserInfo(any(), any()) }
         assertEquals(5, response.body<GetRoleNamesResponse>().roles.size)
     }
 
     @Test
-    @DisplayName("Requester is NOT space participant, GET /space-users/roles should return 403")
-    fun getRoleNames_shouldReturnForbidden() = webTest {
+    @DisplayName("GET /space-users/roles. No space user locally, should fetch from bazar-space, persist and return 200")
+    fun getRoleNames_noUserLocally_shouldFetchFromBazarSpaceAndPersist() = webTest {
         //given
         val spaceId = randomSpaceId()
         val userIds = List(5) { UUID.randomUUID() }
@@ -136,6 +147,9 @@ class SpaceUsersControllerTest : BaseWebTest() {
             initDataHelper.createSpaceUser(spaceId, it.key, it.value, isCreator = false)
         }
 
+        coEvery { bazarSpaceClientMock.getSpaceUserInfo(any(), any()) } returns BazarSpaceUserResponse(
+            authenticatedUserId.toString(), spaceId , false
+        )
 
         //when
         val response = client.get("/api/v1/space-users/roles") {
@@ -144,7 +158,37 @@ class SpaceUsersControllerTest : BaseWebTest() {
             parameter("spaceId", spaceId)
             userIds.forEach { userId -> parameter("userIds", userId) }
         }
+
         //then
+        assertEquals(HttpStatusCode.OK, response.status)
+        coVerify(exactly = 1) { bazarSpaceClientMock.getSpaceUserInfo(any(), any()) }
+
+        val persistedRequester = initDataHelper.getAllSpaceUsers(spaceId).filter { it.userId == authenticatedUserId }
+        assertEquals(1, persistedRequester.size)
+        val persistedUser = persistedRequester.first()
+        assertEquals(DEFAULT_USER_ROLE_ID, persistedUser.roleId)
+        assertFalse(persistedUser.isCreator)
+    }
+
+    @Test
+    @DisplayName("GET /space-users/roles. No space user locally and in bazar-space, should return 403")
+    fun getRoleNames_noUserAnywhere_shouldReturnForbidden() = webTest {
+        //given
+        val spaceId = randomSpaceId()
+        val userIds = List(2) { UUID.randomUUID() }
+
+        coEvery { bazarSpaceClientMock.getSpaceUserInfo(any(), any()) } returns null
+
+        //when
+        val response = client.get("/api/v1/space-users/roles") {
+            header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            parameter("spaceId", spaceId)
+            userIds.forEach { userId -> parameter("userIds", userId) }
+        }
+
+        //then
+        coVerify(exactly = 1) { bazarSpaceClientMock.getSpaceUserInfo(any(), any()) }
         assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 

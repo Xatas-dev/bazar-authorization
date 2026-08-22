@@ -27,5 +27,6 @@ enum class DomainErrors(val message: String) {
     NO_SUCH_ROLE("No such role: %s"),
     INSUFFICIENT_PERMISSIONS("Insufficient permissions for this action"),
     USER_ALREADY_EXISTS("User already exists in space"),
-    NO_SUCH_ATTRIBUTE("No such attribute: %s")
+    NO_SUCH_ATTRIBUTE("No such attribute: %s"),
+    UNAUTHENTICATED("Unauthenticated user")
 }

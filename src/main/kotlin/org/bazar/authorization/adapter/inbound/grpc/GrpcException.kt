@@ -66,6 +66,7 @@ class GrpcExceptionHandler {
             DomainErrors.INSUFFICIENT_PERMISSIONS -> Status.PERMISSION_DENIED
             DomainErrors.USER_ALREADY_EXISTS -> Status.ALREADY_EXISTS
             DomainErrors.NO_SUCH_ATTRIBUTE -> Status.INVALID_ARGUMENT
+            DomainErrors.UNAUTHENTICATED -> Status.UNAUTHENTICATED
         }
         return StatusException(status.withDescription(exception.message))
     }

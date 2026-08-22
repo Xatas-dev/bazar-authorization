@@ -2,32 +2,23 @@ package org.bazar.authorization.infrastructure
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.testing.*
+import io.mockk.mockk
 import org.bazar.authorization.adapter.inbound.grpc.GrpcServerImpl
+import org.bazar.authorization.adapter.outbound.http.BazarSpaceHttpClient
 import org.bazar.authorization.adapter.outbound.role.persistence.RoleRepositoryAdapter
 import org.bazar.authorization.adapter.outbound.role.persistence.RolesActionsRepositoryAdapter
 import org.bazar.authorization.adapter.outbound.spaceuser.persistence.SpaceUserRepositoryAdapter
 import org.bazar.authorization.infrastructure.config.TestContainers
-import org.bazar.authorization.infrastructure.di.appModule
-import org.bazar.authorization.infrastructure.di.cerbosModule
-import org.bazar.authorization.infrastructure.di.controllerModule
-import org.bazar.authorization.infrastructure.di.databaseModule
-import org.bazar.authorization.infrastructure.di.grpcModule
-import org.bazar.authorization.infrastructure.di.repositoryModule
-import org.bazar.authorization.infrastructure.di.securityModule
-import org.bazar.authorization.infrastructure.di.useCaseModule
-import org.bazar.authorization.infrastructure.plugins.TEST_JWT_SECRET
-import org.bazar.authorization.infrastructure.plugins.configureContentNegotiations
-import org.bazar.authorization.infrastructure.plugins.configureGrpcServer
-import org.bazar.authorization.infrastructure.plugins.configureRoutes
-import org.bazar.authorization.infrastructure.plugins.configureSecurity
-import org.bazar.authorization.infrastructure.plugins.configureStatusPages
+import org.bazar.authorization.infrastructure.di.*
+import org.bazar.authorization.infrastructure.plugins.*
 import org.bazar.authorization.infrastructure.plugins.database.configureDatabase
-import org.bazar.authorization.infrastructure.plugins.getAppConfig
+import org.bazar.authorization.infrastructure.plugins.security.TEST_JWT_SECRET
+import org.bazar.authorization.infrastructure.plugins.security.configureSecurity
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
@@ -35,8 +26,7 @@ import org.koin.logger.slf4jLogger
 import org.koin.test.KoinTest
 import org.koin.test.get
 import org.koin.test.inject
-import java.util.UUID
-import kotlin.getValue
+import java.util.*
 
 abstract class BaseIntegrationTest : KoinTest {
 
@@ -79,15 +69,10 @@ abstract class BaseIntegrationTest : KoinTest {
                     useCaseModule(),
                     databaseModule(),
                     controllerModule(),
+                    outboundModule(),
                     cerbosModule(),
-                    module {
-                        single { SharedAppContext.cerbosClient }
-                        single { SharedAppContext.hikariPool }
-                        single { RoleRepositoryAdapter() }
-                        single { RolesActionsRepositoryAdapter() }
-                        single { SpaceUserRepositoryAdapter() }
-                        single { InitDataHelper(get(), get(), get(), get()) }
-                    }
+                    testInfraModule(),
+                    mockkModule()
                 )
             }
             configureGrpcServer()
@@ -127,5 +112,18 @@ abstract class BaseIntegrationTest : KoinTest {
                 statement.execute(sql)
             }
         }
+    }
+
+    private fun mockkModule() = module {
+        single<BazarSpaceHttpClient> { mockk<BazarSpaceHttpClient>() }
+    }
+
+    private fun testInfraModule() = module {
+        single { SharedAppContext.cerbosClient }
+        single { SharedAppContext.hikariPool }
+        single { RoleRepositoryAdapter() }
+        single { RolesActionsRepositoryAdapter() }
+        single { SpaceUserRepositoryAdapter() }
+        single { InitDataHelper(get(), get(), get(), get()) }
     }
 }

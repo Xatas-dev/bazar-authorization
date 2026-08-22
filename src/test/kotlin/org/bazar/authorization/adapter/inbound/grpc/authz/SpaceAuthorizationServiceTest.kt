@@ -1,13 +1,19 @@
 package org.bazar.authorization.adapter.inbound.grpc.authz
 
 import io.grpc.Status
+import io.mockk.coEvery
 import org.assertj.core.api.Assertions.assertThat
+import org.bazar.authorization.adapter.outbound.http.BazarSpaceHttpClient
+import org.bazar.authorization.adapter.outbound.http.BazarSpaceUserResponse
 import org.bazar.authorization.grpc.AuthorizeRequest
 import org.bazar.authorization.infrastructure.BaseGrpcTest
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.koin.test.inject
 
 class SpaceAuthorizationServiceTest : BaseGrpcTest() {
+
+    private val bazarSpaceClientMock by inject<BazarSpaceHttpClient>()
 
     companion object {
         private const val DEFAULT_USER_ROLE_ID = 1L
@@ -54,6 +60,8 @@ class SpaceAuthorizationServiceTest : BaseGrpcTest() {
     @DisplayName("authorize should return PERMISSION_DENIED when user is not in the db for that space")
     fun authorize_whenUserNotInDb_returnPermissionDenied() = grpcTest {
         val spaceId = randomSpaceId()
+
+        coEvery { bazarSpaceClientMock.getSpaceUserInfo(any(), any()) } returns null
 
         assertGrpcStatus(Status.PERMISSION_DENIED) {
             stub.authorize(

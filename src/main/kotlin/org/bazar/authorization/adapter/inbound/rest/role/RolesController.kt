@@ -14,7 +14,7 @@ import org.bazar.authorization.application.role.port.`in`.GetRolesInSpaceUseCase
 import org.bazar.authorization.application.role.port.`in`.UpdateRoleUseCase
 import org.bazar.authorization.application.role.query.GetRoleQuery
 import org.bazar.authorization.application.role.query.GetRolesQuery
-import org.bazar.authorization.adapter.inbound.rest.getAuthenticatedUserId
+import org.bazar.authorization.application.shared.AuthenticatedUserProvider
 import org.bazar.authorization.adapter.inbound.rest.dto.request.CreateRoleRequest
 import org.bazar.authorization.adapter.inbound.rest.dto.request.PutRoleRequest
 import org.bazar.authorization.adapter.inbound.rest.dto.response.GetRolesResponse
@@ -23,12 +23,13 @@ class RolesController(
     private val getRolesInSpaceUseCase: GetRolesInSpaceUseCase,
     private val getEnrichedRoleUseCase: GetEnrichedRoleUseCase,
     private val createRoleUseCase: CreateRoleUseCase,
-    private val updateRoleUseCase: UpdateRoleUseCase
+    private val updateRoleUseCase: UpdateRoleUseCase,
+    private val authenticatedUserProvider: AuthenticatedUserProvider
 ) {
 
     fun Route.getRoles() = get("/roles") {
         val spaceId = call.queryParameters.getOrFail<Long>("spaceId")
-        val requesterId = call.getAuthenticatedUserId()
+        val requesterId = authenticatedUserProvider.getUserId()
 
         val roles = getRolesInSpaceUseCase.execute(GetRolesQuery(spaceId, requesterId))
 
@@ -38,7 +39,7 @@ class RolesController(
     fun Route.getSingleEnrichedRole() = get("/roles/{roleId}") {
         val spaceId = call.queryParameters.getOrFail<Long>("spaceId")
         val roleId = call.pathParameters.getOrFail<Long>("roleId")
-        val requesterId = call.getAuthenticatedUserId()
+        val requesterId = authenticatedUserProvider.getUserId()
 
         val role = getEnrichedRoleUseCase.execute(GetRoleQuery(roleId, spaceId, requesterId))
 
@@ -47,7 +48,7 @@ class RolesController(
 
     fun Route.createRole() = post("/roles") {
         val request = call.receive<CreateRoleRequest>()
-        val requesterId = call.getAuthenticatedUserId()
+        val requesterId = authenticatedUserProvider.getUserId()
 
         val command: CreateRoleCommand = request.toCommand(requesterId)
 
@@ -58,7 +59,7 @@ class RolesController(
 
     fun Route.putRole() = put("/roles") {
         val request = call.receive<PutRoleRequest>()
-        val requesterId = call.getAuthenticatedUserId()
+        val requesterId = authenticatedUserProvider.getUserId()
         val spaceId = call.queryParameters.getOrFail<Long>("spaceId")
         val roleId = call.queryParameters.getOrFail<Long>("roleId")
 

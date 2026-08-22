@@ -5,6 +5,7 @@ import com.tngtech.archunit.junit.AnalyzeClasses
 import com.tngtech.archunit.junit.ArchTest
 import com.tngtech.archunit.lang.ArchRule
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 import com.tngtech.archunit.library.Architectures
 
 @AnalyzeClasses(
@@ -55,7 +56,7 @@ class ArchitectureTest {
         )
         .`as`(
             "Application layer may only depend on Domain, itself, JDK/Kotlin, slf4j, JetBrains annotations and " +
-                "Exposed transaction DSL (pragmatic tradeoff)"
+                    "Exposed transaction DSL (pragmatic tradeoff)"
         )
 
     @ArchTest
@@ -75,4 +76,11 @@ class ArchitectureTest {
         .whereLayer(INFRASTRUCTURE)
         .mayOnlyBeAccessedByLayers(ADAPTER_INBOUND, ADAPTER_OUTBOUND)
         .`as`("Infrastructure layer may only be accessed by adapters")
+
+    @ArchTest
+    val infrastructure_must_not_depend_on_outbound_adapters: ArchRule = noClasses()
+        .that().resideInAPackage("..infrastructure..")
+        .and().resideOutsideOfPackage("..infrastructure.di..")
+        .should().dependOnClassesThat().resideInAPackage("..adapter.outbound..")
+        .`as`("Infrastructure must not depend on outbound adapters (DI wiring excluded)")
 }

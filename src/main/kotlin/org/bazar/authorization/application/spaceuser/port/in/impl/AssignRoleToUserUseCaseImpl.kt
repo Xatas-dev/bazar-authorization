@@ -3,6 +3,7 @@ package org.bazar.authorization.application.spaceuser.port.`in`.impl
 import org.bazar.authorization.application.shared.buildAuthorizationCheck
 import org.bazar.authorization.application.shared.port.out.Authorizer
 import org.bazar.authorization.application.spaceuser.command.AssignRoleCommand
+import org.bazar.authorization.application.spaceuser.port.SpaceUserLazyFallbackResolver
 import org.bazar.authorization.application.spaceuser.port.`in`.AssignRoleToUserUseCase
 import org.bazar.authorization.application.spaceuser.port.out.SpaceUserRepositoryPort
 import org.bazar.authorization.domain.authz.Permission
@@ -12,6 +13,7 @@ import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 
 class AssignRoleToUserUseCaseImpl(
     private val spaceUserRepositoryPort: SpaceUserRepositoryPort,
+    private val spaceUserResolver: SpaceUserLazyFallbackResolver,
     private val authorizer: Authorizer
 ) : AssignRoleToUserUseCase {
 
@@ -26,7 +28,7 @@ class AssignRoleToUserUseCaseImpl(
         )
 
         suspendTransaction {
-            val existingUser = spaceUserRepositoryPort.findBySpaceIdAndUserId(command.spaceId, command.targetUserId)
+            val existingUser = spaceUserResolver.findOrResolveExternally(command.spaceId, command.targetUserId)
                 ?: throw DomainException(
                     DomainErrors.NO_SUCH_USER_IN_SPACE,
                     "userId: ${command.targetUserId}, spaceId: ${command.spaceId}"

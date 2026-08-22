@@ -1,33 +1,12 @@
-package org.bazar.authorization.adapter.inbound.grpc
+package org.bazar.authorization.infrastructure.plugins.security
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import io.grpc.Context
-import io.grpc.Contexts
-import io.grpc.Metadata
-import io.grpc.ServerCall
-import io.grpc.ServerCallHandler
-import io.grpc.ServerInterceptor
-import io.grpc.Status
-import io.ktor.server.auth.jwt.JWTPrincipal
+import io.grpc.*
+import io.ktor.server.auth.jwt.*
+import org.bazar.authorization.adapter.inbound.grpc.JwtProvider
 import org.slf4j.LoggerFactory
-import java.util.Date
-import java.util.UUID
-
-object GrpcSecurityContext {
-    private val PRINCIPAL_KEY: Context.Key<JWTPrincipal> = Context.key("jwt-principal")
-
-    fun current(): JWTPrincipal? = PRINCIPAL_KEY.get()
-
-    fun getUserId(): UUID {
-        val subject = current()?.payload?.subject
-            ?: throw Status.UNAUTHENTICATED.withDescription("No valid JWT principal").asException()
-        return UUID.fromString(subject)
-    }
-
-    fun withPrincipal(principal: JWTPrincipal): Context =
-        Context.current().withValue(PRINCIPAL_KEY, principal)
-}
+import java.util.*
 
 class GrpcAuthInterceptor(private val jwtProvider: JwtProvider) : ServerInterceptor {
     override fun <ReqT, RespT> interceptCall(
@@ -46,7 +25,7 @@ class GrpcAuthInterceptor(private val jwtProvider: JwtProvider) : ServerIntercep
 
         return try {
             val principal = jwtProvider.verify(token ?: throw Exception("Missing Token"))
-            val context = GrpcSecurityContext.withPrincipal(principal)
+            val context = GrpcSecurityContext.withPrincipal(principal, token)
             Contexts.interceptCall(context, call, headers, next)
         } catch (e: Exception) {
             call.close(Status.UNAUTHENTICATED.withDescription(e.message), Metadata())

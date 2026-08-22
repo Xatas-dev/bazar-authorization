@@ -8,6 +8,7 @@ import org.bazar.authorization.infrastructure.di.cerbosModule
 import org.bazar.authorization.infrastructure.di.controllerModule
 import org.bazar.authorization.infrastructure.di.databaseModule
 import org.bazar.authorization.infrastructure.di.grpcModule
+import org.bazar.authorization.infrastructure.di.outboundModule
 import org.bazar.authorization.infrastructure.di.repositoryModule
 import org.bazar.authorization.infrastructure.di.securityModule
 import org.bazar.authorization.infrastructure.di.useCaseModule
@@ -25,7 +26,8 @@ fun Application.configureKoin(appConfig: AppConfig) {
             useCaseModule(),
             cerbosModule(),
             databaseModule(),
-            controllerModule()
+            controllerModule(),
+            outboundModule()
         )
     }
 }
