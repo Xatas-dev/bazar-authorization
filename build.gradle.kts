@@ -31,6 +31,7 @@ val testContainersVersion = "2.0.3"
 val testContainersPostgresqlVersion = "1.21.3"
 val liquibaseTestVersion = "5.0.1"
 val swaggerGeneratorVersion = "1.0.36"
+val mockkVersion = "1.14.11"
 
 application {
     mainClass = "org.bazar.authorization.infrastructure.BazarAuthorizationApplicationKt"
@@ -56,6 +57,9 @@ dependencies {
     implementation("io.ktor:ktor-server-routing-openapi:${ktorVersion}")
     implementation("io.ktor:ktor-server-auth:${ktorVersion}")
     implementation("io.ktor:ktor-server-status-pages:${ktorVersion}")
+    implementation("io.ktor:ktor-client-core:${ktorVersion}")
+    implementation("io.ktor:ktor-client-content-negotiation:${ktorVersion}")
+    implementation("io.ktor:ktor-client-cio:${ktorVersion}")
     // Logging
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
 
@@ -92,6 +96,7 @@ dependencies {
     testImplementation("org.testcontainers:postgresql:$testContainersPostgresqlVersion")
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("io.ktor:ktor-client-content-negotiation")
+    testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("io.insert-koin:koin-test:$koinVersion")
     testImplementation("io.insert-koin:koin-test-junit5:$koinVersion")

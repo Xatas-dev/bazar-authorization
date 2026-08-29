@@ -6,7 +6,7 @@ import org.bazar.authorization.adapter.inbound.rest.spaceuser.SpaceUsersControll
 import org.koin.dsl.module
 
 fun controllerModule() = module {
-    single { ActionController(get()) }
-    single { SpaceUsersController(get(), get()) }
-    single { RolesController(get(), get(), get(), get()) }
+    single { ActionController(get(), get()) }
+    single { SpaceUsersController(get(), get(), get()) }
+    single { RolesController(get(), get(), get(), get(), get()) }
 }

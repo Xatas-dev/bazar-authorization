@@ -7,19 +7,21 @@ import org.bazar.authorization.application.spaceuser.query.GetRoleNamesQuery
 import org.bazar.authorization.domain.exception.DomainErrors
 import org.bazar.authorization.domain.exception.DomainException
 import org.bazar.authorization.application.spaceuser.UserRoleName
+import org.bazar.authorization.application.spaceuser.port.SpaceUserLazyFallbackResolver
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 class GetRoleNamesUseCaseImpl(
     private val spaceUserRepositoryPort: SpaceUserRepositoryPort,
-    private val roleRepositoryPort: RoleRepositoryPort
+    private val roleRepositoryPort: RoleRepositoryPort,
+    private val spaceUserResolver: SpaceUserLazyFallbackResolver
 ) : GetRoleNamesUseCase {
 
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
 
     override suspend fun execute(query: GetRoleNamesQuery): List<UserRoleName> = suspendTransaction {
-        spaceUserRepositoryPort.findBySpaceIdAndUserId(query.spaceId, query.requesterId)
+        spaceUserResolver.findOrResolveExternally(query.spaceId, query.requesterId)
             ?: throw DomainException(
                 DomainErrors.NO_SUCH_USER_IN_SPACE,
                 "spaceId: ${query.spaceId}, userId: ${query.requesterId}"

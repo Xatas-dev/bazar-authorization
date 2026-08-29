@@ -23,7 +23,9 @@ data class SpaceUser(
     }
 
     companion object {
-        fun create(spaceId: Long, userId: UUID, roleId: Long, isCreator: Boolean): SpaceUser {
+        const val DEFAULT_ROLE_ID: Long = 1
+
+        fun create(spaceId: Long, userId: UUID, isCreator: Boolean, roleId: Long = DEFAULT_ROLE_ID): SpaceUser {
             if (spaceId <= 0) {
                 throw DomainException(DomainErrors.ILLEGAL_ARGUMENT, "Space id must be positive: $spaceId")
             }

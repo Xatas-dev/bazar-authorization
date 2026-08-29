@@ -17,6 +17,8 @@ auth:
   audience: dummy
 cerbos:
   url: dummy
+http:
+  bazarSpaceUrl: http://bazar-space-mock
 logging:
   level:
     root: INFO

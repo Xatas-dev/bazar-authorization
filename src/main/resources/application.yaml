@@ -22,6 +22,8 @@ auth:
 
 cerbos:
   url: ${CERBOS_URL:localhost:3593}
+http:
+  bazarSpaceUrl: ${BAZAR_SPACE_URL:localhost:9999}
 logging:
   level:
     root: INFO

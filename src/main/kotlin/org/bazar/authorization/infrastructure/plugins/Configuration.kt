@@ -9,6 +9,7 @@ import org.bazar.authorization.infrastructure.config.AuthConfig
 import org.bazar.authorization.infrastructure.config.CerbosConfig
 import org.bazar.authorization.infrastructure.config.DatabaseConfig
 import org.bazar.authorization.infrastructure.config.GrpcConfig
+import org.bazar.authorization.infrastructure.config.HttpConfig
 import org.bazar.authorization.infrastructure.config.LoggingConfig
 import org.bazar.authorization.infrastructure.config.Profile
 import org.slf4j.LoggerFactory
@@ -39,7 +40,8 @@ private fun ApplicationConfig.toAppConfig(): AppConfig {
         grpc = GrpcConfig(property("grpc.port").getString().toInt()),
         cerbos = CerbosConfig(property("cerbos.url").getString()),
         profile = Profile.valueOf(property("profile").getString()),
-        logging = LoggingConfig(loggingMap)
+        logging = LoggingConfig(loggingMap),
+        http = HttpConfig(property("http.bazarSpaceUrl").getString())
     )
 }
 

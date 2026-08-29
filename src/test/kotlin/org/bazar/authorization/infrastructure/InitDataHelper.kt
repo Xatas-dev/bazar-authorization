@@ -22,8 +22,8 @@ class InitDataHelper(
     private val roleRepositoryPort: RoleRepositoryPort
 ) : KoinTest {
 
-    fun createSpaceUser(spaceId: Long, userId: UUID, roleId: Long, isCreator: Boolean) = transaction {
-        spaceUserRepositoryPort.save(SpaceUser.create(spaceId, userId, roleId, isCreator))
+    suspend fun createSpaceUser(spaceId: Long, userId: UUID, roleId: Long, isCreator: Boolean) {
+        spaceUserRepositoryPort.save(SpaceUser.create(spaceId, userId, isCreator, roleId))
     }
 
     fun createRolesActions(roleId: Long, actionId: Int) = transaction {

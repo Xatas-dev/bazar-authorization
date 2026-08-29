@@ -4,15 +4,15 @@ import org.bazar.authorization.domain.spaceuser.SpaceUser
 import java.util.UUID
 
 interface SpaceUserRepositoryPort {
-    fun save(user: SpaceUser)
+    suspend fun save(user: SpaceUser)
 
-    fun deleteUsersBySpaceId(spaceId: Long)
+    suspend fun deleteUsersBySpaceId(spaceId: Long)
 
-    fun findAllRoleIdsBySpaceId(spaceId: Long): List<Long>
+    suspend fun findAllRoleIdsBySpaceId(spaceId: Long): List<Long>
 
-    fun findBySpaceIdAndUserId(spaceId: Long, userId: UUID): SpaceUser?
+    suspend fun findBySpaceIdAndUserId(spaceId: Long, userId: UUID): SpaceUser?
 
-    fun deleteBySpaceIdAndUserId(spaceId: Long, userId: UUID)
+    suspend fun deleteBySpaceIdAndUserId(spaceId: Long, userId: UUID)
 
-    fun findAllBySpaceIdAndUserIdsIn(spaceId: Long, userIds: List<UUID>): List<SpaceUser>
+    suspend fun findAllBySpaceIdAndUserIdsIn(spaceId: Long, userIds: List<UUID>): List<SpaceUser>
 }

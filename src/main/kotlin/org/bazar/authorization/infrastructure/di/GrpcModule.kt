@@ -2,11 +2,11 @@ package org.bazar.authorization.infrastructure.di
 
 import io.grpc.BindableService
 import io.grpc.ServerInterceptor
-import org.bazar.authorization.adapter.inbound.grpc.GrpcAuthInterceptor
+import org.bazar.authorization.infrastructure.plugins.security.GrpcAuthInterceptor
 import org.bazar.authorization.adapter.inbound.grpc.GrpcExceptionHandler
 import org.bazar.authorization.adapter.inbound.grpc.GrpcExceptionTranslatorInterceptor
 import org.bazar.authorization.adapter.inbound.grpc.GrpcServerImpl
-import org.bazar.authorization.adapter.inbound.grpc.MockGrpcAuthInterceptor
+import org.bazar.authorization.infrastructure.plugins.security.MockGrpcAuthInterceptor
 import org.bazar.authorization.adapter.inbound.grpc.spaceuser.SpaceAdminAuthorizationService
 import org.bazar.authorization.adapter.inbound.grpc.authz.SpaceAuthorizationService
 import org.bazar.authorization.infrastructure.config.AppConfig
@@ -15,7 +15,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 fun grpcModule() = module {
-    single<BindableService>(named("authGrpcService")) { SpaceAuthorizationService(get()) }
+    single<BindableService>(named("authGrpcService")) { SpaceAuthorizationService(get(), get()) }
     single<BindableService>(named("authAdminGrpcService")) {
         SpaceAdminAuthorizationService(get(), get(), get())
     }

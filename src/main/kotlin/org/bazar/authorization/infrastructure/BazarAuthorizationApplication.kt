@@ -3,6 +3,7 @@ package org.bazar.authorization.infrastructure
 import io.ktor.server.application.*
 import org.bazar.authorization.infrastructure.plugins.*
 import org.bazar.authorization.infrastructure.plugins.database.configureDatabase
+import org.bazar.authorization.infrastructure.plugins.security.configureSecurity
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
