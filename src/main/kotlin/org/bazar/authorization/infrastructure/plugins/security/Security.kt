@@ -37,7 +37,7 @@ fun Application.configureSecurity() {
         }
     }
 
-    intercept(ApplicationCallPipeline.Call) {
+    intercept(ApplicationCallPipeline.Plugins) {
         val token = call.request.parseAuthorizationHeader()?.toString()?.removePrefix("Bearer ")
         if (token != null) {
             val userId = token.let { runCatching { JWT.decode(it).subject?.let(UUID::fromString) }.getOrNull() }
