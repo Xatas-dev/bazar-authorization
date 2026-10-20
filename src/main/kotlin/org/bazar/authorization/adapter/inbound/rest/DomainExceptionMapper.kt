@@ -12,6 +12,7 @@ private fun DomainErrors.toHttpStatusCode(): HttpStatusCode = when (this) {
     DomainErrors.USER_ALREADY_EXISTS -> HttpStatusCode.Conflict
     DomainErrors.NO_SUCH_ATTRIBUTE -> HttpStatusCode.BadRequest
     DomainErrors.UNAUTHENTICATED -> HttpStatusCode.Unauthorized
+    DomainErrors.NO_SUCH_ROLE_ACTION_MAPPING -> HttpStatusCode.BadRequest
 }
 
 private val DomainErrors.displayMessage: String
@@ -23,6 +24,7 @@ private val DomainErrors.displayMessage: String
         DomainErrors.USER_ALREADY_EXISTS -> "Такой пользователь уже есть"
         DomainErrors.NO_SUCH_ATTRIBUTE -> "Аттрибута не существует"
         DomainErrors.UNAUTHENTICATED -> "Пользователь не авторизовался"
+        DomainErrors.NO_SUCH_ROLE_ACTION_MAPPING -> "Ошибка на стороне сервера, в роли нет такого права"
     }
 
 fun org.bazar.authorization.domain.exception.DomainException.toHttpStatusCode(): HttpStatusCode =

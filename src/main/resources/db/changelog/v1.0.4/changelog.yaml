@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include:
+      file: 20261020-00-0-delete-create-edit-actions.sql
+      relativeToChangelogFile: true
+  - include:
+      file: 20261020-00-1-insert-manage-action.sql
+      relativeToChangelogFile: true

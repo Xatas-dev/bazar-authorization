@@ -2,7 +2,7 @@ package org.bazar.authorization.application.authz.port.`in`.impl
 
 import org.bazar.authorization.application.authz.port.`in`.AuthorizeUseCase
 import org.bazar.authorization.application.shared.AttributeExtractionContext
-import org.bazar.authorization.application.shared.AttributeExtractor
+import org.bazar.authorization.application.authz.extractors.AttributeExtractor
 import org.bazar.authorization.application.shared.port.out.AccessPolicyChecker
 import org.bazar.authorization.application.spaceuser.port.SpaceUserLazyFallbackResolver
 import org.bazar.authorization.domain.authz.AuthorizationCheck

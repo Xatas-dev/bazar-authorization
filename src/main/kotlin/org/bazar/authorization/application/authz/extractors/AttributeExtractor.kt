@@ -1,4 +1,4 @@
-package org.bazar.authorization.application.shared
+package org.bazar.authorization.application.authz.extractors
 
 import org.bazar.authorization.application.shared.AttributeExtractionContext
 

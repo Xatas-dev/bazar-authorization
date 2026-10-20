@@ -12,10 +12,6 @@ object RolesActions : CompositeIdTable("roles_actions") {
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
 
-    val assignedAttribute = jsonb<Map<String, String>>(
-        "assigned_attribute", Json.Default
-    ).nullable()
-
     init {
         addIdColumn(role)
         addIdColumn(action)

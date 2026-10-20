@@ -6,7 +6,7 @@ import org.bazar.authorization.application.spaceuser.command.AssignRoleCommand
 import org.bazar.authorization.application.spaceuser.port.SpaceUserLazyFallbackResolver
 import org.bazar.authorization.application.spaceuser.port.`in`.AssignRoleToUserUseCase
 import org.bazar.authorization.application.spaceuser.port.out.SpaceUserRepositoryPort
-import org.bazar.authorization.domain.authz.Permission
+import org.bazar.authorization.domain.authz.AuthorizationAction
 import org.bazar.authorization.domain.exception.DomainErrors
 import org.bazar.authorization.domain.exception.DomainException
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
@@ -22,7 +22,7 @@ class AssignRoleToUserUseCaseImpl(
             buildAuthorizationCheck(
                 spaceId = command.spaceId,
                 userId = command.requesterId,
-                permission = Permission.ROLES_ASSIGN,
+                authorizationConstant = AuthorizationAction.ROLES_ASSIGN,
                 resourceId = command.roleId.toString()
             )
         )

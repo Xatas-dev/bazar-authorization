@@ -9,5 +9,5 @@ data class GetEnrichedRoleResponse(
     val isVisible: Boolean,
     val createdBy: String,
     val spaceId: Long?,
-    val actions: List<GetActionWithAssignedAttributesDto>
+    val actions: List<GetActionDto>
 )

@@ -7,7 +7,7 @@ import org.bazar.authorization.application.shared.port.out.Authorizer
 import org.bazar.authorization.application.spaceuser.command.DeleteSpaceCommand
 import org.bazar.authorization.application.spaceuser.port.`in`.DeleteSpaceUseCase
 import org.bazar.authorization.application.spaceuser.port.out.SpaceUserRepositoryPort
-import org.bazar.authorization.domain.authz.Permission
+import org.bazar.authorization.domain.authz.AuthorizationAction
 import org.bazar.authorization.domain.role.RoleScope
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 
@@ -23,7 +23,7 @@ class DeleteSpaceUseCaseImpl(
             buildAuthorizationCheck(
                 spaceId = command.spaceId,
                 userId = command.requesterId,
-                permission = Permission.SPACE_DELETE
+                authorizationConstant = AuthorizationAction.SPACE_DELETE
             )
         )
 

@@ -14,9 +14,9 @@ import org.bazar.authorization.application.role.port.`in`.impl.CreateRoleUseCase
 import org.bazar.authorization.application.role.port.`in`.impl.GetEnrichedRoleUseCaseImpl
 import org.bazar.authorization.application.role.port.`in`.impl.GetRolesInSpaceUseCaseImpl
 import org.bazar.authorization.application.role.port.`in`.impl.UpdateRoleUseCaseImpl
-import org.bazar.authorization.application.shared.AttributeExtractor
-import org.bazar.authorization.application.shared.impl.DefaultUserPrincipalAttributeExtractor
-import org.bazar.authorization.application.shared.impl.RolesResourceAttributeExtractor
+import org.bazar.authorization.application.authz.extractors.AttributeExtractor
+import org.bazar.authorization.application.authz.extractors.impl.UserPrincipalAttributesExtractor
+import org.bazar.authorization.application.authz.extractors.impl.UserRolePrincipalAttributesExtractor
 import org.bazar.authorization.application.shared.port.out.AccessPolicyChecker
 import org.bazar.authorization.application.shared.port.out.Authorizer
 import org.bazar.authorization.application.spaceuser.port.SpaceUserLazyFallbackResolver
@@ -38,22 +38,22 @@ fun useCaseModule() = module {
 
     single<AuthorizeUseCase> { AuthorizeUseCaseImpl(get(), getAll(AttributeExtractor::class), get()) }
 
-    single<CreateRoleUseCase> { CreateRoleUseCaseImpl(get(), get(), get(), get(), get()) }
-    single<UpdateRoleUseCase> { UpdateRoleUseCaseImpl(get(), get(), get(), get(), get()) }
+    single<CreateRoleUseCase> { CreateRoleUseCaseImpl(get(), get(), get(), get()) }
+    single<UpdateRoleUseCase> { UpdateRoleUseCaseImpl(get(), get(), get(), get()) }
     single<GetRolesInSpaceUseCase> { GetRolesInSpaceUseCaseImpl(get(), get()) }
-    single<GetEnrichedRoleUseCase> { GetEnrichedRoleUseCaseImpl(get(), get(), get(), get(), get()) }
+    single<GetEnrichedRoleUseCase> { GetEnrichedRoleUseCaseImpl(get(), get(), get(), get()) }
 
     single<AssignRoleToUserUseCase> { AssignRoleToUserUseCaseImpl(get(), get(), get()) }
     single<DeleteUserFromSpaceUseCase> { DeleteUserFromSpaceUseCaseImpl(get(), get()) }
     single<DeleteSpaceUseCase> { DeleteSpaceUseCaseImpl(get(), get(), get(), get()) }
     single<GetRoleNamesUseCase> { GetRoleNamesUseCaseImpl(get(), get(), get()) }
 
-    single<GetActionsUseCase> { GetActionsUseCaseImpl(get(), get(), get()) }
+    single<GetActionsUseCase> { GetActionsUseCaseImpl(get(), get()) }
 
-    single<AttributeExtractor>(named("defaultUserPrincipalAttributeExtractor")) {
-        DefaultUserPrincipalAttributeExtractor(get(), get(), get())
+    single<AttributeExtractor>(named("userPrincipalAttributesExtractor")) {
+        UserPrincipalAttributesExtractor()
     }
-    single<AttributeExtractor>(named("rolesResourceAttributeExtractor")) {
-        RolesResourceAttributeExtractor(get())
+    single<AttributeExtractor>(named("userRolePrincipalAttributesExtractor")) {
+        UserRolePrincipalAttributesExtractor(get(), get(), get())
     }
 }

@@ -5,7 +5,7 @@ import org.bazar.authorization.application.role.port.out.RoleRepositoryPort
 import org.bazar.authorization.application.role.query.GetRolesQuery
 import org.bazar.authorization.application.shared.buildAuthorizationCheck
 import org.bazar.authorization.application.shared.port.out.Authorizer
-import org.bazar.authorization.domain.authz.Permission
+import org.bazar.authorization.domain.authz.AuthorizationAction
 import org.bazar.authorization.domain.role.Role
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 
@@ -19,7 +19,7 @@ class GetRolesInSpaceUseCaseImpl(
             buildAuthorizationCheck(
                 spaceId = query.spaceId,
                 userId = query.requesterId,
-                permission = Permission.ROLES_READ
+                authorizationConstant = AuthorizationAction.ROLES_READ
             )
         )
 
