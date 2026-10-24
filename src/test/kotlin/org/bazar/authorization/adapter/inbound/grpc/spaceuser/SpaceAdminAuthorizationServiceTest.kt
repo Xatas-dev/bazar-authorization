@@ -7,6 +7,7 @@ import org.bazar.authorization.grpc.CreateUserRequest
 import org.bazar.authorization.grpc.DeleteSpaceRequest
 import org.bazar.authorization.grpc.DeleteUserRequest
 import org.bazar.authorization.infrastructure.BaseGrpcTest
+import org.bazar.authorization.infrastructure.enums.TestActions
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.junit.jupiter.api.DisplayName
@@ -87,7 +88,7 @@ class SpaceAdminAuthorizationServiceTest : BaseGrpcTest() {
         val spaceId = randomSpaceId()
         val actionsInDb = initDataHelper.getAllActions()
         val customRoleId = initDataHelper.createRole(spaceId)
-        initDataHelper.createRolesActions(customRoleId, actionsInDb.first().id)
+        initDataHelper.createRolesActions(customRoleId, TestActions.CHAT_MESSAGES_READ)
 
         initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = DEFAULT_USER_ROLE_ID, isCreator = true)
         initDataHelper.createSpaceUser(spaceId, UUID.randomUUID(), roleId = customRoleId, isCreator = false)

@@ -70,25 +70,21 @@ class CerbosAccessCheckerTest : BaseIntegrationTest() {
         val principal = Principal.newInstance(userId.toString(), "user")
             .withAttribute(
                 "allowed_actions", listValue(
-                    stringValue("roles:CREATE")
-                )
-            )
-            .withAttribute(
-                "grantable_actions", listValue(
-                    stringValue("1"),
-                    stringValue("2"),
-                    stringValue("3")
+                    stringValue("roles:ASSIGN"),
+                    stringValue("roles:MANAGE"),
+                    stringValue("space:DELETE"),
+                    stringValue("space_user:ADD")
                 )
             )
             .withAttribute(
                 "actions_to_grant", listValue(
-                    stringValue("1"),
-                    stringValue("2")
+                    stringValue("space:DELETE"),
+                    stringValue("space_user:ADD")
                 )
             )
         val resource = Resource.newInstance("roles")
-        val result = cerbosBlockingClient.check(principal, resource, "CREATE")
-        assertEquals(true, result.isAllowed("CREATE"))
+        val result = cerbosBlockingClient.check(principal, resource, "MANAGE")
+        assertEquals(true, result.isAllowed("MANAGE"))
     }
 
     @Test
@@ -99,21 +95,17 @@ class CerbosAccessCheckerTest : BaseIntegrationTest() {
         val principal = Principal.newInstance(userId.toString(), "user")
             .withAttribute(
                 "allowed_actions", listValue(
-                    stringValue("roles:EDIT")
-                )
-            )
-            .withAttribute(
-                "grantable_actions", listValue(
-                    stringValue("1"),
-                    stringValue("2"),
-                    stringValue("3")
+                    stringValue("roles:ASSIGN"),
+                    stringValue("roles:MANAGE"),
+                    stringValue("space:DELETE"),
+                    stringValue("space_user:ADD")
                 )
             )
             .withAttribute(
                 "actions_to_grant", listValue(
-                    stringValue("1"),
-                    stringValue("2"),
-                    stringValue("3")
+                    stringValue("roles:ASSIGN"),
+                    stringValue("space:DELETE"),
+                    stringValue("space_user:ADD")
                 )
             )
             .withAttribute(
@@ -124,42 +116,8 @@ class CerbosAccessCheckerTest : BaseIntegrationTest() {
         val resource = Resource.newInstance("roles")
             .withAttribute("id", stringValue("1"))
             .withAttribute("scope", stringValue("SPACE"))
-        val result = cerbosBlockingClient.check(principal, resource, "EDIT")
-        assertEquals(true, result.isAllowed("EDIT"))
-    }
-
-    @Test
-    @DisplayName("User tries to edit the role he created, should return ALLOW")
-    fun test_spaceUserHasRolesEditTriesToEditRoleHeCreated_shouldReturnAllow() = integrationTest {
-        val userId = UUID.randomUUID();
-
-        val principal = Principal.newInstance(userId.toString(), "user")
-            .withAttribute(
-                "allowed_actions", listValue(
-                    stringValue("roles:EDIT")
-                )
-            )
-            .withAttribute(
-                "grantable_actions", listValue(
-                    stringValue("1"),
-                    stringValue("2"),
-                    stringValue("3")
-                )
-            )
-            .withAttribute(
-                "actions_to_grant", listValue(
-                    stringValue("1"),
-                    stringValue("2"),
-                    stringValue("3")
-                )
-            )
-            .withAttribute("user_id", stringValue("1111U"))
-        val resource = Resource.newInstance("roles")
-            .withAttribute("id", stringValue("1"))
-            .withAttribute("created_by", stringValue("1111U"))
-            .withAttribute("scope", stringValue("SPACE"))
-        val result = cerbosBlockingClient.check(principal, resource, "EDIT")
-        assertEquals(true, result.isAllowed("EDIT"))
+        val result = cerbosBlockingClient.check(principal, resource, "MANAGE")
+        assertEquals(true, result.isAllowed("MANAGE"))
     }
 
 }

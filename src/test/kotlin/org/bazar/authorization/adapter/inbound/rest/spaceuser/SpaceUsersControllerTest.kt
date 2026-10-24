@@ -12,6 +12,7 @@ import org.bazar.authorization.adapter.inbound.rest.dto.response.GetRoleNamesRes
 import org.bazar.authorization.adapter.outbound.http.BazarSpaceHttpClient
 import org.bazar.authorization.adapter.outbound.http.BazarSpaceUserResponse
 import org.bazar.authorization.adapter.outbound.spaceuser.persistence.SpaceUsers.userId
+import org.bazar.authorization.infrastructure.enums.TestActions
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.koin.core.component.inject
@@ -61,7 +62,7 @@ class SpaceUsersControllerTest : BaseWebTest() {
         val roleToAssign = initDataHelper.createRole(spaceId)
         val requesterRoleId = initDataHelper.createRole(spaceId)
         initDataHelper.apply {
-            createRolesActions(requesterRoleId, 9, mapOf("assignable_roles" to "[$roleToAssign]"))
+            createRolesActions(requesterRoleId, TestActions.ROLES_ASSIGN)
         }
         initDataHelper.createSpaceUser(spaceId, authenticatedUserId, requesterRoleId, false)
         initDataHelper.createSpaceUser(spaceId, userIdToAssign, DEFAULT_USER_ROLE_ID, false)
