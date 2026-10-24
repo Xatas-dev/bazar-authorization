@@ -7,6 +7,7 @@ import kotlinx.serialization.json.Json
 import org.bazar.authorization.infrastructure.BaseWebTest
 import org.bazar.authorization.adapter.inbound.rest.dto.response.ErrorResponse
 import org.bazar.authorization.adapter.inbound.rest.dto.response.GetActionsResponse
+import org.bazar.authorization.infrastructure.enums.TestActions
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -25,7 +26,7 @@ class ActionControllerTest : BaseWebTest() {
     fun userWithRoleThatCanAccessAllActions_shouldReturnOk() = webTest {
         val spaceId = randomSpaceId()
         val createdRoleId = initDataHelper.createRole(spaceId)
-        initDataHelper.createRolesActions(createdRoleId, 8)
+        initDataHelper.createRolesActions(createdRoleId, TestActions.ROLES_READ)
         initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = createdRoleId, isCreator = false)
         val expectedSize = initDataHelper.getAllActions().size
 

@@ -1,7 +1,7 @@
 package org.bazar.authorization.adapter.outbound.role.persistence
 
 import org.bazar.authorization.domain.role.Role
-import org.bazar.authorization.application.role.RoleActionMapping
+import org.bazar.authorization.domain.role.RoleActionMapping
 import org.bazar.authorization.infrastructure.util.extension.toUuid
 import org.jetbrains.exposed.v1.core.ResultRow
 
@@ -19,7 +19,6 @@ fun ResultRow.toRole(): Role = Role(
 fun ResultRow.toRoleActionMapping(): RoleActionMapping = RoleActionMapping(
     roleId = this[RolesActions.role].value,
     actionId = this[RolesActions.action].value,
-    assignedAttributes = this[RolesActions.assignedAttribute],
     createdAt = this[RolesActions.createdAt],
     updatedAt = this[RolesActions.updatedAt]
 )

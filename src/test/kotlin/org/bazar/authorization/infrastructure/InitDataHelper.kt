@@ -7,10 +7,13 @@ import org.bazar.authorization.application.action.port.out.ActionRepositoryPort
 import org.bazar.authorization.application.role.port.out.RoleRepositoryPort
 import org.bazar.authorization.application.spaceuser.port.out.SpaceUserRepositoryPort
 import org.bazar.authorization.domain.role.Role
-import org.bazar.authorization.application.role.RoleActionMapping
+import org.bazar.authorization.domain.role.RoleActionMapping
 import org.bazar.authorization.domain.spaceuser.SpaceUser
+import org.bazar.authorization.infrastructure.enums.TestActions
+import org.bazar.authorization.infrastructure.enums.TestAttributes
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.koin.test.KoinTest
 import java.util.UUID
@@ -26,20 +29,18 @@ class InitDataHelper(
         spaceUserRepositoryPort.save(SpaceUser.create(spaceId, userId, isCreator, roleId))
     }
 
-    fun createRolesActions(roleId: Long, actionId: Int) = transaction {
-        rolesActionsRepositoryAdapter.save(RoleActionMapping(roleId = roleId, actionId = actionId))
-    }
-
     fun createRolesActions(
         roleId: Long,
-        actionId: Int,
-        assignedAttributes: Map<String, String>
+        action: TestActions,
     ) = transaction {
+        val actionId = actionRepositoryPort.findAll()
+            .firstOrNull { it.code == action.actionCode && it.resource == action.resource }?.id ?:
+            throw IllegalArgumentException("No such action in DB actionCode: ${action.actionCode}, actionResource: ${action.resource}")
+
         rolesActionsRepositoryAdapter.save(
             RoleActionMapping(
                 roleId = roleId,
-                actionId = actionId,
-                assignedAttributes = assignedAttributes
+                actionId = actionId
             )
         )
     }
@@ -58,5 +59,11 @@ class InitDataHelper(
                 .where { SpaceUsers.spaceId eq spaceId }
                 .map { it.toSpaceUser() }
         }
+    }
+
+    suspend fun getActionIdByTestAction(action: TestActions): Int = suspendTransaction {
+        actionRepositoryPort.findAll()
+            .firstOrNull { it.code == action.actionCode && it.resource == action.resource }?.id
+            ?: throw IllegalArgumentException("No such action, actionCode: ${action.actionCode}, actionResource: ${action.resource}")
     }
 }

@@ -1,7 +1,7 @@
 package org.bazar.authorization.adapter.outbound.role.persistence
 
 import org.bazar.authorization.application.role.port.out.RolesActionsRepositoryPort
-import org.bazar.authorization.application.role.RoleActionMapping
+import org.bazar.authorization.domain.role.RoleActionMapping
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.batchUpsert
@@ -18,7 +18,6 @@ class RolesActionsRepositoryAdapter : RolesActionsRepositoryPort {
         ) {
             this[RolesActions.role] = it.roleId
             this[RolesActions.action] = it.actionId
-            this[RolesActions.assignedAttribute] = it.assignedAttributes
             this[RolesActions.createdAt] = it.createdAt
             this[RolesActions.updatedAt] = it.updatedAt
         }
@@ -32,7 +31,6 @@ class RolesActionsRepositoryAdapter : RolesActionsRepositoryPort {
         ) {
             this[RolesActions.role] = it.roleId
             this[RolesActions.action] = it.actionId
-            this[RolesActions.assignedAttribute] = it.assignedAttributes
             this[RolesActions.createdAt] = it.createdAt
             this[RolesActions.updatedAt] = it.updatedAt
         }.map { it.toRoleActionMapping() }

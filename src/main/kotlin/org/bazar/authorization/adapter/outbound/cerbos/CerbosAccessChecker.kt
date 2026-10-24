@@ -23,7 +23,7 @@ class CerbosAccessChecker(
             .apply {
                 withAttributes(check.principalAttributes.mapValues { toAttributeValue(it.value) })
             }
-        val resource = Resource.newInstance(check.resource, check.spaceId.toString())
+        val resource = Resource.newInstance(check.resource, check.resourceId ?: "_NEW_")
             .apply {
                 withAttributes(check.resourceAttributes.mapValues { toAttributeValue(it.value) })
             }

@@ -9,13 +9,7 @@ data class CreateRoleCommand(
     val createdBy: UUID,
     val actions: List<RoleActionToGrant>
 )
-
+//TODO: change actionId to action code + resource for easier mapping in code
 data class RoleActionToGrant(
-    val actionId: Int,
-    val attributes: List<RoleAttributeToGrant> = emptyList()
-)
-
-data class RoleAttributeToGrant(
-    val attributeId: Int,
-    val value: String
+    val actionId: Int
 )

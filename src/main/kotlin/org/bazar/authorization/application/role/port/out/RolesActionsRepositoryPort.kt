@@ -1,6 +1,6 @@
 package org.bazar.authorization.application.role.port.out
 
-import org.bazar.authorization.application.role.RoleActionMapping
+import org.bazar.authorization.domain.role.RoleActionMapping
 
 interface RolesActionsRepositoryPort {
     fun saveAll(mappings: List<RoleActionMapping>): List<RoleActionMapping>
