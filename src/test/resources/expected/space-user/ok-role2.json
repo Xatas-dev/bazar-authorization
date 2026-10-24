@@ -7,38 +7,37 @@
     {
       "id": 3,
       "code": "READ",
-      "name": "Читать сообщения в чате",
+      "name": "Читать сообщения",
       "resource": "chat_messages",
       "resourceName": "Чат"
     },
     {
       "id": 4,
       "code": "WRITE",
-      "name": "Писать в чат",
+      "name": "Отправлять сообщения",
       "resource": "chat_messages",
       "resourceName": "Чат"
     },
     {
       "id": 6,
       "code": "ADD",
-      "name": "Добавлять новых пользователей в спейс",
+      "name": "Добавлять пользователей",
       "resource": "space_user",
       "resourceName": "Пользователи"
     },
     {
       "id":12,
       "code":"READ",
-      "name":"Смотреть файлы в хранилище",
+      "name":"Просматривать файлы",
       "resource":"storage_node",
       "resourceName":"Хранилище"
     },
     {
       "id":14,
       "code":"DOWNLOAD",
-      "name":"Скачивать файлы из хранилища",
+      "name":"Скачивать файлы",
       "resource":"storage_node",
       "resourceName":"Хранилище"
     }
   ]
 }
-
