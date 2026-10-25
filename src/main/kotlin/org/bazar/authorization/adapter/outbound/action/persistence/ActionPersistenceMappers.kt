@@ -8,6 +8,7 @@ fun ResultRow.toAction(): Action = Action(
     code = this[Actions.code],
     name = this[Actions.name],
     resource = this[Actions.resource],
+    dependsOn = this[Actions.dependsOn],
     resourceName = this[Actions.resourceName],
     createdAt = this[Actions.createdAt],
     updatedAt = this[Actions.updatedAt]

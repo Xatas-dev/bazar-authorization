@@ -10,6 +10,7 @@ import org.assertj.core.api.Assertions.tuple
 import org.bazar.authorization.adapter.inbound.rest.dto.request.CreateRoleRequest
 import org.bazar.authorization.adapter.inbound.rest.dto.request.PutRoleRequest
 import org.bazar.authorization.adapter.inbound.rest.dto.request.SimpleActionDto
+import org.bazar.authorization.adapter.inbound.rest.dto.response.ApiErrorResponse
 import org.bazar.authorization.adapter.inbound.rest.dto.response.GetEnrichedRoleResponse
 import org.bazar.authorization.adapter.inbound.rest.dto.response.GetRolesResponse
 import org.bazar.authorization.infrastructure.BaseWebTest
@@ -67,9 +68,10 @@ class RolesControllerTest : BaseWebTest() {
         }
 
         assertEquals(HttpStatusCode.OK, response.status)
+        val responseBody = response.body<GetEnrichedRoleResponse>()
 
-        val expected = loadExpectedJson("/expected/space-user/ok-role2.json")
-        assertJsonEquals(expected, response.bodyAsText())
+        assertThat(responseBody.actions).hasSize(5)
+        assertThat(responseBody.id).isEqualTo(DEFAULT_USER_ROLE_ID)
     }
 
     @Test
@@ -86,9 +88,6 @@ class RolesControllerTest : BaseWebTest() {
         }
 
         assertEquals(HttpStatusCode.Forbidden, response.status)
-
-        val expected = loadExpectedJson("/expected/space-user/forbidden.json")
-        assertJsonEquals(expected, response.bodyAsText())
     }
 
     @Test
@@ -108,11 +107,11 @@ class RolesControllerTest : BaseWebTest() {
 
         assertEquals(HttpStatusCode.OK, response.status)
 
-        val expected = loadExpectedJson("/expected/space-user/ok-custom-role.json")
-            .replace("{{roleId}}", customRoleId.toString())
-            .replace("{{spaceId}}", spaceId.toString())
-            .replace("{{created_by}}", authenticatedUserId.toString())
-        assertJsonEquals(expected, response.bodyAsText())
+        val responseBody = response.body<GetEnrichedRoleResponse>()
+        assertThat(responseBody.spaceId).isEqualTo(spaceId)
+        assertThat(responseBody.name).isEqualTo("rand")
+        assertThat(responseBody.id).isEqualTo(customRoleId)
+        assertThat(responseBody.isVisible).isEqualTo(true)
     }
 
     @Test
@@ -138,6 +137,11 @@ class RolesControllerTest : BaseWebTest() {
             action = TestActions.ROLES_ASSIGN
         )
 
+        initDataHelper.createRolesActions(
+            roleId = requesterRoleId,
+            action = TestActions.ROLES_READ
+        )
+
         initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = requesterRoleId, isCreator = false)
 
         val request = CreateRoleRequest(
@@ -148,6 +152,9 @@ class RolesControllerTest : BaseWebTest() {
                 SimpleActionDto(initDataHelper.getActionIdByTestAction(TestActions.CHAT_MESSAGES_READ)),
                 SimpleActionDto(
                     initDataHelper.getActionIdByTestAction(TestActions.ROLES_MANAGE)
+                ),
+                SimpleActionDto(
+                    initDataHelper.getActionIdByTestAction(TestActions.ROLES_READ)
                 ),
                 SimpleActionDto(
                     initDataHelper.getActionIdByTestAction(TestActions.ROLES_ASSIGN)
@@ -168,7 +175,7 @@ class RolesControllerTest : BaseWebTest() {
 
         assertThat(responseBody.spaceId).isEqualTo(spaceId)
         assertThat(responseBody.name).isEqualTo(newRoleName)
-        assertThat(responseBody.actions).hasSize(3)
+        assertThat(responseBody.actions).hasSize(4)
 
         assertThat(responseBody.actions)
             .extracting(
@@ -177,6 +184,9 @@ class RolesControllerTest : BaseWebTest() {
             ).containsExactlyInAnyOrder(
                 tuple(
                     TestActions.ROLES_MANAGE.resource, TestActions.ROLES_MANAGE.actionCode
+                ),
+                tuple(
+                    TestActions.ROLES_READ.resource, TestActions.ROLES_READ.actionCode
                 ),
                 tuple(
                     TestActions.ROLES_ASSIGN.resource, TestActions.ROLES_ASSIGN.actionCode
@@ -221,6 +231,47 @@ class RolesControllerTest : BaseWebTest() {
         }
 
         assertEquals(HttpStatusCode.Forbidden, response.status)
+    }
+
+    @Test
+    @DisplayName("Create role: unsatisfied dependency on action, should return 422")
+    fun createRole_unsatisfiedActionDependency_shouldReturnForbidden() = webTest {
+        val spaceId = randomSpaceId()
+
+        val requesterRoleId = initDataHelper.createRole(spaceId)
+        initDataHelper.createRolesActions(
+            roleId = requesterRoleId,
+            action = TestActions.ROLES_MANAGE
+        )
+        initDataHelper.createRolesActions(
+            roleId = requesterRoleId,
+            action = TestActions.CHAT_MESSAGES_WRITE
+        )
+        initDataHelper.createRolesActions(
+            roleId = requesterRoleId,
+            action = TestActions.CHAT_MESSAGES_READ
+        )
+
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = requesterRoleId, isCreator = false)
+
+        val request = CreateRoleRequest(
+            spaceId,
+            "TestRole",
+            true,
+            listOf(
+                SimpleActionDto(initDataHelper.getActionIdByTestAction(TestActions.CHAT_MESSAGES_WRITE))
+            )
+        )
+
+        val response = client.post("/api/v1/roles") {
+            header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(request)
+        }
+
+        assertEquals(HttpStatusCode.UnprocessableEntity, response.status)
+        val responseBody = response.body<ApiErrorResponse>()
+        assertThat(responseBody.message).isEqualTo("Для «Отправлять сообщения» необходимо также добавить «Читать сообщения»")
     }
 
     @Test

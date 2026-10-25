@@ -3,7 +3,7 @@ package org.bazar.authorization.adapter.inbound.rest.dto.response
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ErrorResponse(
-    val code: Int,
+data class ApiErrorResponse(
+    val code: String,
     val message: String
 )

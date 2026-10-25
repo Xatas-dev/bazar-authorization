@@ -17,6 +17,7 @@ import org.bazar.authorization.application.role.port.`in`.impl.UpdateRoleUseCase
 import org.bazar.authorization.application.authz.extractors.AttributeExtractor
 import org.bazar.authorization.application.authz.extractors.impl.UserPrincipalAttributesExtractor
 import org.bazar.authorization.application.authz.extractors.impl.UserRolePrincipalAttributesExtractor
+import org.bazar.authorization.application.role.ActionDependencyResolver
 import org.bazar.authorization.application.shared.port.out.AccessPolicyChecker
 import org.bazar.authorization.application.shared.port.out.Authorizer
 import org.bazar.authorization.application.spaceuser.port.SpaceUserLazyFallbackResolver
@@ -38,8 +39,8 @@ fun useCaseModule() = module {
 
     single<AuthorizeUseCase> { AuthorizeUseCaseImpl(get(), getAll(AttributeExtractor::class), get()) }
 
-    single<CreateRoleUseCase> { CreateRoleUseCaseImpl(get(), get(), get(), get()) }
-    single<UpdateRoleUseCase> { UpdateRoleUseCaseImpl(get(), get(), get(), get()) }
+    single<CreateRoleUseCase> { CreateRoleUseCaseImpl(get(), get(), get(), get(), get()) }
+    single<UpdateRoleUseCase> { UpdateRoleUseCaseImpl(get(), get(), get(), get(), get()) }
     single<GetRolesInSpaceUseCase> { GetRolesInSpaceUseCaseImpl(get(), get()) }
     single<GetEnrichedRoleUseCase> { GetEnrichedRoleUseCaseImpl(get(), get(), get(), get()) }
 
@@ -49,6 +50,7 @@ fun useCaseModule() = module {
     single<GetRoleNamesUseCase> { GetRoleNamesUseCaseImpl(get(), get(), get()) }
 
     single<GetActionsUseCase> { GetActionsUseCaseImpl(get(), get()) }
+    single<ActionDependencyResolver> { ActionDependencyResolver (get())}
 
     single<AttributeExtractor>(named("userPrincipalAttributesExtractor")) {
         UserPrincipalAttributesExtractor()

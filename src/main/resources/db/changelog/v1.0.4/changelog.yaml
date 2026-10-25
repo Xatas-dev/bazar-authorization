@@ -8,3 +8,9 @@ databaseChangeLog:
   - include:
       file: 20261024-00-0-rename-actions.sql
       relativeToChangelogFile: true
+  - include:
+      file: 20261024-00-1-add-dependency-column-to-action-table.sql
+      relativeToChangelogFile: true
+  - include:
+      file: 20261024-00-2-add-dependencies-on-actions.sql
+      relativeToChangelogFile: true
