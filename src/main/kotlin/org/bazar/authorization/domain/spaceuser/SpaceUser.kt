@@ -1,9 +1,8 @@
 package org.bazar.authorization.domain.spaceuser
 
-import org.bazar.authorization.domain.exception.DomainErrors
-import org.bazar.authorization.domain.exception.DomainException
+import org.bazar.authorization.domain.exception.InvalidArgumentException
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 data class SpaceUser(
     val spaceId: Long,
@@ -16,9 +15,7 @@ data class SpaceUser(
 ) {
 
     fun withRole(newRoleId: Long): SpaceUser {
-        if (newRoleId <= 0) {
-            throw DomainException(DomainErrors.ILLEGAL_ARGUMENT, "Role id must be positive: $newRoleId")
-        }
+        requirePositive("roleId", newRoleId)
         return copy(roleId = newRoleId, updatedAt = Instant.now())
     }
 
@@ -26,13 +23,13 @@ data class SpaceUser(
         const val DEFAULT_ROLE_ID: Long = 1
 
         fun create(spaceId: Long, userId: UUID, isCreator: Boolean, roleId: Long = DEFAULT_ROLE_ID): SpaceUser {
-            if (spaceId <= 0) {
-                throw DomainException(DomainErrors.ILLEGAL_ARGUMENT, "Space id must be positive: $spaceId")
-            }
-            if (roleId <= 0) {
-                throw DomainException(DomainErrors.ILLEGAL_ARGUMENT, "Role id must be positive: $roleId")
-            }
+            requirePositive("spaceId", spaceId)
+            requirePositive("roleId", roleId)
             return SpaceUser(spaceId, userId, roleId, isCreator)
+        }
+
+        private fun requirePositive(field: String, value: Long) {
+            if (value <= 0) throw InvalidArgumentException(field, "must be positive, got $value")
         }
     }
 }

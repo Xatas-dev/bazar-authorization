@@ -6,21 +6,17 @@ import org.bazar.authorization.application.role.port.out.RoleRepositoryPort
 import org.bazar.authorization.application.role.port.out.RolesActionsRepositoryPort
 import org.bazar.authorization.application.shared.AttributeExtractionContext
 import org.bazar.authorization.domain.authz.PrincipalAttributes
-import org.bazar.authorization.domain.exception.DomainErrors
-import org.bazar.authorization.domain.exception.DomainException
+import org.bazar.authorization.domain.exception.RoleNotFoundException
 
 class UserRolePrincipalAttributesExtractor(
     private val roleRepositoryPort: RoleRepositoryPort,
     private val actionRepositoryPort: ActionRepositoryPort,
     private val rolesActionsRepositoryPort: RolesActionsRepositoryPort
-): AttributeExtractor {
+) : AttributeExtractor {
     override fun extract(context: AttributeExtractionContext): AttributeExtractionContext {
         val user = context.authenticatedUser
         val role = roleRepositoryPort.findById(context.authenticatedUser.roleId)
-            ?: throw DomainException(
-                DomainErrors.NO_SUCH_ROLE,
-                "roleId: ${context.authenticatedUser.roleId}"
-            )
+            ?: throw RoleNotFoundException(user.roleId)
         val roleMappings = rolesActionsRepositoryPort.findAllByRoleId(user.roleId)
         val grantedActions = actionRepositoryPort.findByIds(roleMappings.map { it.actionId })
 

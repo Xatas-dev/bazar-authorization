@@ -8,6 +8,7 @@ data class Action(
     val name: String,
     val resource: String,
     val resourceName: String,
+    val dependsOn: Int?,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now()
 )

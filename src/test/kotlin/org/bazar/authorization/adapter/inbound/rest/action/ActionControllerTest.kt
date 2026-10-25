@@ -4,8 +4,8 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.serialization.json.Json
+import org.bazar.authorization.adapter.inbound.rest.dto.response.ApiErrorResponse
 import org.bazar.authorization.infrastructure.BaseWebTest
-import org.bazar.authorization.adapter.inbound.rest.dto.response.ErrorResponse
 import org.bazar.authorization.adapter.inbound.rest.dto.response.GetActionsResponse
 import org.bazar.authorization.infrastructure.enums.TestActions
 import org.junit.jupiter.api.DisplayName
@@ -52,8 +52,8 @@ class ActionControllerTest : BaseWebTest() {
 
         assertEquals(HttpStatusCode.Forbidden, response.status)
 
-        val body = json.decodeFromString<ErrorResponse>(response.bodyAsText())
-        assertEquals(HttpStatusCode.Forbidden.value, body.code)
+        val body = json.decodeFromString<ApiErrorResponse>(response.bodyAsText())
+        assertEquals(HttpStatusCode.Forbidden, response.status)
         assertTrue(body.message.isNotBlank())
     }
 

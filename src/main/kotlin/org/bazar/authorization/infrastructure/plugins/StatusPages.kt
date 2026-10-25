@@ -1,35 +1,41 @@
 package org.bazar.authorization.infrastructure.plugins
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.Application
-import io.ktor.server.application.install
-import io.ktor.server.plugins.BadRequestException
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.response.respond
-import org.bazar.authorization.adapter.inbound.rest.toErrorDto
-import org.bazar.authorization.adapter.inbound.rest.toHttpStatusCode
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.response.*
+import org.bazar.authorization.adapter.inbound.rest.dto.response.ApiErrorResponse
+import org.bazar.authorization.adapter.inbound.rest.errors.toHttpError
 import org.bazar.authorization.domain.exception.DomainException
-import org.bazar.authorization.adapter.inbound.rest.dto.response.ErrorResponse
 import org.bazar.authorization.infrastructure.util.logger
 
 fun Application.configureStatusPages() {
     val logger = logger()
     install(StatusPages) {
         exception<DomainException> { call, cause ->
-            logger.error(cause.message, cause)
-            call.respond(status = cause.toHttpStatusCode(), cause.toErrorDto())
+            val httpError = cause.toHttpError()
+            if (httpError.status.value >= 500) {
+                logger.error(cause.message, cause)
+            } else {
+                logger.warn(cause.message)
+            }
+            call.respond(httpError.status, httpError.body)
         }
 
         exception<BadRequestException> { call, cause ->
-            logger.error(cause.message, cause)
-            call.respond(status = HttpStatusCode.BadRequest, ErrorResponse(400, "Ошибка валидации"))
+            logger.warn(cause.message)
+            call.respond(
+                HttpStatusCode.BadRequest,
+                ApiErrorResponse("VALIDATION_ERROR", "Ошибка валидации")
+            )
         }
 
         exception<Throwable> { call, cause ->
-            logger.error(cause.message, cause)
+            logger.error("Unhandled exception", cause)
             call.respond(
                 HttpStatusCode.InternalServerError,
-                ErrorResponse(500, "Неизвестная ошибка на стороне сервера")
+                ApiErrorResponse("INTERNAL_ERROR", "Внутренняя ошибка сервера")
             )
         }
     }

@@ -9,8 +9,7 @@ import org.bazar.authorization.application.role.query.GetRoleQuery
 import org.bazar.authorization.application.shared.buildAuthorizationCheck
 import org.bazar.authorization.application.shared.port.out.Authorizer
 import org.bazar.authorization.domain.authz.AuthorizationAction
-import org.bazar.authorization.domain.exception.DomainErrors
-import org.bazar.authorization.domain.exception.DomainException
+import org.bazar.authorization.domain.exception.RoleNotFoundException
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 
 class GetEnrichedRoleUseCaseImpl(
@@ -32,7 +31,7 @@ class GetEnrichedRoleUseCaseImpl(
 
         return suspendTransaction {
             val role = roleRepositoryPort.findById(query.roleId)
-                ?: throw DomainException(DomainErrors.NO_SUCH_ROLE, "roleId: ${query.roleId}")
+                ?: throw RoleNotFoundException(query.roleId)
             val roleActionMappings = rolesActionsRepositoryPort.findAllByRoleId(query.roleId)
             val actions = actionRepositoryPort.findByIds(roleActionMappings.map { it.actionId })
 

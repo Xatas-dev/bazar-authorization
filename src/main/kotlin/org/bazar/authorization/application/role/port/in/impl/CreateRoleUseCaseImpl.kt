@@ -1,6 +1,7 @@
 package org.bazar.authorization.application.role.port.`in`.impl
 
 import org.bazar.authorization.application.action.port.out.ActionRepositoryPort
+import org.bazar.authorization.application.role.ActionDependencyResolver
 import org.bazar.authorization.application.role.EnrichedRole
 import org.bazar.authorization.application.role.command.CreateRoleCommand
 import org.bazar.authorization.application.role.port.`in`.CreateRoleUseCase
@@ -19,6 +20,7 @@ class CreateRoleUseCaseImpl(
     private val roleRepositoryPort: RoleRepositoryPort,
     private val rolesActionsRepositoryPort: RolesActionsRepositoryPort,
     private val actionRepositoryPort: ActionRepositoryPort,
+    private val actionDependencyResolver: ActionDependencyResolver,
     private val authorizer: Authorizer
 ) : CreateRoleUseCase {
 
@@ -28,6 +30,8 @@ class CreateRoleUseCaseImpl(
         }
 
         authorize(command, actionsFromDb)
+
+        actionDependencyResolver.validateActionsDependency(actionsFromDb)
 
         return suspendTransaction {
             val createdRole = roleRepositoryPort.save(
