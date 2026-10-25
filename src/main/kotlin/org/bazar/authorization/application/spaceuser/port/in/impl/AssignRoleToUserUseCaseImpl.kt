@@ -7,8 +7,8 @@ import org.bazar.authorization.application.spaceuser.port.SpaceUserLazyFallbackR
 import org.bazar.authorization.application.spaceuser.port.`in`.AssignRoleToUserUseCase
 import org.bazar.authorization.application.spaceuser.port.out.SpaceUserRepositoryPort
 import org.bazar.authorization.domain.authz.AuthorizationAction
-import org.bazar.authorization.domain.exception.DomainErrors
 import org.bazar.authorization.domain.exception.DomainException
+import org.bazar.authorization.domain.exception.UserNotInSpaceException
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 
 class AssignRoleToUserUseCaseImpl(
@@ -29,10 +29,7 @@ class AssignRoleToUserUseCaseImpl(
 
         suspendTransaction {
             val existingUser = spaceUserResolver.findOrResolveExternally(command.spaceId, command.targetUserId)
-                ?: throw DomainException(
-                    DomainErrors.NO_SUCH_USER_IN_SPACE,
-                    "userId: ${command.targetUserId}, spaceId: ${command.spaceId}"
-                )
+                ?: throw UserNotInSpaceException(command.targetUserId, command.spaceId)
 
             spaceUserRepositoryPort.save(existingUser.withRole(command.roleId))
         }

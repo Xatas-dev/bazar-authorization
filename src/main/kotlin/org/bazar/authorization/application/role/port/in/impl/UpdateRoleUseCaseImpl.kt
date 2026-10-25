@@ -1,6 +1,7 @@
 package org.bazar.authorization.application.role.port.`in`.impl
 
 import org.bazar.authorization.application.action.port.out.ActionRepositoryPort
+import org.bazar.authorization.application.role.ActionDependencyResolver
 import org.bazar.authorization.application.role.EnrichedRole
 import org.bazar.authorization.application.role.command.UpdateRoleCommand
 import org.bazar.authorization.application.role.port.`in`.UpdateRoleUseCase
@@ -10,8 +11,7 @@ import org.bazar.authorization.application.shared.buildAuthorizationCheck
 import org.bazar.authorization.application.shared.port.out.Authorizer
 import org.bazar.authorization.domain.authz.AuthorizationAction
 import org.bazar.authorization.domain.authz.PrincipalAttributes
-import org.bazar.authorization.domain.exception.DomainErrors
-import org.bazar.authorization.domain.exception.DomainException
+import org.bazar.authorization.domain.exception.RoleNotFoundException
 import org.bazar.authorization.domain.role.RoleActionMapping
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 
@@ -19,6 +19,7 @@ class UpdateRoleUseCaseImpl(
     private val roleRepositoryPort: RoleRepositoryPort,
     private val rolesActionsRepositoryPort: RolesActionsRepositoryPort,
     private val actionRepositoryPort: ActionRepositoryPort,
+    private val actionDependencyResolver: ActionDependencyResolver,
     private val authorizer: Authorizer
 ) : UpdateRoleUseCase {
 
@@ -47,9 +48,11 @@ class UpdateRoleUseCaseImpl(
             )
         )
 
+        actionDependencyResolver.validateActionsDependency(newlyGrantedActions)
+
         return suspendTransaction {
             val roleInDb = roleRepositoryPort.findById(command.roleId)
-                ?: throw DomainException(DomainErrors.NO_SUCH_ROLE, "roleId: ${command.roleId}")
+                ?: throw RoleNotFoundException(command.roleId)
 
             val updatedRole = roleRepositoryPort.update(roleInDb.update(command.name, command.isVisible))
 

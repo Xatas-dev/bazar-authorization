@@ -1,13 +1,12 @@
 package org.bazar.authorization.application.authz.port.`in`.impl
 
+import org.bazar.authorization.application.authz.extractors.AttributeExtractor
 import org.bazar.authorization.application.authz.port.`in`.AuthorizeUseCase
 import org.bazar.authorization.application.shared.AttributeExtractionContext
-import org.bazar.authorization.application.authz.extractors.AttributeExtractor
 import org.bazar.authorization.application.shared.port.out.AccessPolicyChecker
 import org.bazar.authorization.application.spaceuser.port.SpaceUserLazyFallbackResolver
 import org.bazar.authorization.domain.authz.AuthorizationCheck
-import org.bazar.authorization.domain.exception.DomainErrors
-import org.bazar.authorization.domain.exception.DomainException
+import org.bazar.authorization.domain.exception.UserNotInSpaceException
 import org.bazar.authorization.domain.spaceuser.SpaceUser
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.slf4j.Logger
@@ -24,9 +23,9 @@ class AuthorizeUseCaseImpl(
     override suspend fun execute(check: AuthorizationCheck): Boolean {
         val finalCheck = suspendTransaction {
             val spaceUser = spaceUserResolver.findOrResolveExternally(check.spaceId, check.loggedInUserId)
-                ?: throw DomainException(
-                    DomainErrors.NO_SUCH_USER_IN_SPACE,
-                    "spaceId: ${check.spaceId}, userId: ${check.loggedInUserId}"
+                ?: throw UserNotInSpaceException(
+                    userId = check.loggedInUserId,
+                    spaceId = check.spaceId
                 )
 
             val initialContext = buildAttributeExtractionContext(check, spaceUser)
@@ -43,7 +42,7 @@ class AuthorizeUseCaseImpl(
             )
         }
 
-        logger.debug("Checking access for request: {}", finalCheck.toString())
+        logger.debug("Checking access for request: {}", finalCheck)
         return accessPolicyChecker.checkAccess(finalCheck)
     }
 

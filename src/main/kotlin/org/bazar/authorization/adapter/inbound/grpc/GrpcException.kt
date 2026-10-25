@@ -7,8 +7,15 @@ import io.grpc.ServerCallHandler
 import io.grpc.ServerInterceptor
 import io.grpc.Status
 import io.grpc.StatusException
-import org.bazar.authorization.domain.exception.DomainErrors
+import org.bazar.authorization.domain.exception.ActionsNotFoundException
 import org.bazar.authorization.domain.exception.DomainException
+import org.bazar.authorization.domain.exception.InsufficientPermissionsException
+import org.bazar.authorization.domain.exception.InvalidArgumentException
+import org.bazar.authorization.domain.exception.RoleNotFoundException
+import org.bazar.authorization.domain.exception.UnauthenticatedException
+import org.bazar.authorization.domain.exception.UnsatisfiedActionDependenciesException
+import org.bazar.authorization.domain.exception.UserAlreadyInSpaceException
+import org.bazar.authorization.domain.exception.UserNotInSpaceException
 import org.slf4j.LoggerFactory
 
 class GrpcExceptionTranslatorInterceptor(private val grpcExceptionHandler: GrpcExceptionHandler) : ServerInterceptor {
@@ -59,15 +66,15 @@ class GrpcExceptionHandler {
     }
 
     private fun mapDomainException(exception: DomainException): StatusException {
-        val status = when (exception.exceptionType) {
-            DomainErrors.ILLEGAL_ARGUMENT -> Status.INVALID_ARGUMENT
-            DomainErrors.NO_SUCH_USER_IN_SPACE -> Status.PERMISSION_DENIED
-            DomainErrors.NO_SUCH_ROLE -> Status.INVALID_ARGUMENT
-            DomainErrors.INSUFFICIENT_PERMISSIONS -> Status.PERMISSION_DENIED
-            DomainErrors.USER_ALREADY_EXISTS -> Status.ALREADY_EXISTS
-            DomainErrors.NO_SUCH_ATTRIBUTE -> Status.INVALID_ARGUMENT
-            DomainErrors.UNAUTHENTICATED -> Status.UNAUTHENTICATED
-            DomainErrors.NO_SUCH_ROLE_ACTION_MAPPING -> Status.INVALID_ARGUMENT
+        val status = when (exception) {
+            is UnauthenticatedException -> Status.UNAUTHENTICATED
+            is InsufficientPermissionsException -> Status.PERMISSION_DENIED
+            is UserNotInSpaceException -> Status.PERMISSION_DENIED
+            is UserAlreadyInSpaceException -> Status.ALREADY_EXISTS
+            is RoleNotFoundException -> Status.NOT_FOUND
+            is ActionsNotFoundException -> Status.INVALID_ARGUMENT
+            is InvalidArgumentException -> Status.INVALID_ARGUMENT
+            is UnsatisfiedActionDependenciesException -> Status.FAILED_PRECONDITION
         }
         return StatusException(status.withDescription(exception.message))
     }

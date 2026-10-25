@@ -1,9 +1,0 @@
-{
-  "id": {{roleId}},
-  "name": "rand",
-  "isVisible": true,
-  "createdBy": "{{created_by}}",
-  "spaceId": {{spaceId}},
-  "actions": []
-}
-

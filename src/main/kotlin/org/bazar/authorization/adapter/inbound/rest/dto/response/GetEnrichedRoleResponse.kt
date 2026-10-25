@@ -5,9 +5,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class GetEnrichedRoleResponse(
     val id: Long,
-    val name: String?,
+    val name: String? = null,
     val isVisible: Boolean,
     val createdBy: String,
-    val spaceId: Long?,
+    val spaceId: Long? = null,
     val actions: List<GetActionDto>
 )
