@@ -9,11 +9,11 @@ on:
   push:
     branches:
       - master
-      - release
+      - 'release/**'          # ← matches release/1.0.5, release/2.0.0, etc.
   pull_request:
     branches:
       - master
-      - release
+      - 'release/**'          # ← same here
   workflow_dispatch:
 
 env:
@@ -32,7 +32,6 @@ jobs:
           skip_after_successful_duplicate: 'true'
           do_not_skip: '["push", "pull_request", "workflow_dispatch", "schedule"]'
 
-  # CODE SCAN
   analyze:
     name: Analyze (${{ matrix.language }})
     needs: pre_job
@@ -97,7 +96,7 @@ jobs:
           TAGS=""
 
           if [[ "${{ github.event_name }}" == "push" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            if [[ "${{ github.ref_name }}" == "release" ]]; then
+            if [[ "${{ github.ref_name }}" == release/* ]]; then
               TAGS="${{ env.IMAGE_NAME }}:${{ env.APP_VERSION }},${{ env.IMAGE_NAME }}:latest"
               PUSH_DOCKER_IMAGE="true"
             elif [[ "${{ github.ref_name }}" == "master" ]]; then
@@ -135,7 +134,7 @@ jobs:
   create-tag:
     needs: docker-build-and-publish
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/release'
+    if: startsWith(github.ref, 'refs/heads/release/')    # ← matches release/1.0.5
     steps:
       - uses: actions/checkout@v4
 
