@@ -9,6 +9,7 @@ object Actions : IntIdTable("action") {
     val resource = varchar("resource", length = 64)
     val resourceName = varchar("resource_name", length = 64)
     val dependsOn = integer("depends_on").nullable()
+    val deleted = bool("deleted").default(false)
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
 }
