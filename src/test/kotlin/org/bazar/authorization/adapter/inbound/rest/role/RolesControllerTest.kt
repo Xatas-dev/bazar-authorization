@@ -281,7 +281,9 @@ class RolesControllerTest : BaseWebTest() {
         val spaceId = randomSpaceId()
         val roleIdToEdit = initDataHelper.createRole(spaceId)
         initDataHelper.apply {
-            createRolesActions(roleIdToEdit, TestActions.STORAGE_NODE_DOWNLOAD)
+            createRolesActions(roleIdToEdit, TestActions.STORAGE_NODE_READ)
+            createRolesActions(roleIdToEdit, TestActions.CHAT_MESSAGES_WRITE)
+            createRolesActions(roleIdToEdit, TestActions.CHAT_MESSAGES_READ)
             createRolesActions(
                 roleIdToEdit, TestActions.ROLES_MANAGE
             )
@@ -292,9 +294,13 @@ class RolesControllerTest : BaseWebTest() {
             createRolesActions(
                 roleAssignedToUser, TestActions.ROLES_MANAGE
             )
+            createRolesActions(
+                roleAssignedToUser, TestActions.ROLES_READ
+            )
 
             createRolesActions(roleAssignedToUser, TestActions.CHAT_MESSAGES_WRITE)
             createRolesActions(roleAssignedToUser, TestActions.CHAT_MESSAGES_READ)
+            createRolesActions(roleAssignedToUser, TestActions.STORAGE_NODE_DOWNLOAD)
         }
         initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = roleAssignedToUser, isCreator = false)
 
@@ -302,12 +308,10 @@ class RolesControllerTest : BaseWebTest() {
             "TestRole",
             true,
             listOf(
-                SimpleActionDto(initDataHelper.getActionIdByTestAction(TestActions.CHAT_MESSAGES_WRITE)),
-                SimpleActionDto(initDataHelper.getActionIdByTestAction(TestActions.CHAT_MESSAGES_READ)),
                 SimpleActionDto(initDataHelper.getActionIdByTestAction(TestActions.STORAGE_NODE_DOWNLOAD)),
-                SimpleActionDto(
-                    initDataHelper.getActionIdByTestAction(TestActions.ROLES_MANAGE)
-                ),
+                SimpleActionDto(initDataHelper.getActionIdByTestAction(TestActions.STORAGE_NODE_READ)),
+                SimpleActionDto(initDataHelper.getActionIdByTestAction(TestActions.ROLES_MANAGE)),
+                SimpleActionDto(initDataHelper.getActionIdByTestAction(TestActions.ROLES_READ)),
             )
         )
         //when

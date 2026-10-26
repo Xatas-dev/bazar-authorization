@@ -9,5 +9,6 @@ enum class TestActions (
     ROLES_READ("READ", "roles"),
     CHAT_MESSAGES_READ("READ", "chat_messages"),
     CHAT_MESSAGES_WRITE("WRITE", "chat_messages"),
-    STORAGE_NODE_DOWNLOAD("DOWNLOAD", "storage_node")
+    STORAGE_NODE_DOWNLOAD("DOWNLOAD", "storage_node"),
+    STORAGE_NODE_READ("READ", "storage_node"),
 }
