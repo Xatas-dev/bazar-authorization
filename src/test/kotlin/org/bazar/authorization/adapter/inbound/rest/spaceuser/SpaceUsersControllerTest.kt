@@ -54,8 +54,8 @@ class SpaceUsersControllerTest : BaseWebTest() {
     }
 
     @Test
-    @DisplayName("PATCH /space-users/roles. Role exist, user has all rights to assign this role, should return OK")
-    fun userHasAllRightToAssignRole_shouldReturnOk() = webTest {
+    @DisplayName("PATCH /space-users/roles. Requester is not a creator but has roles:ASSIGN in role, should return FORBIDDEN")
+    fun nonCreator_withRolesAssignInRole_shouldReturnForbidden() = webTest {
         //given
         val spaceId = randomSpaceId()
         val userIdToAssign = UUID.randomUUID()
@@ -73,12 +73,11 @@ class SpaceUsersControllerTest : BaseWebTest() {
                 header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
             }
         //then
-        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(HttpStatusCode.Forbidden, response.status)
 
         val targetUsersInDb = initDataHelper.getAllSpaceUsers(spaceId).filter { it.userId == userIdToAssign }
         assertEquals(targetUsersInDb.size, 1)
-        val targetUserInDb = targetUsersInDb.first()
-        assertEquals(targetUserInDb.roleId, roleToAssign)
+        assertEquals(targetUsersInDb.first().roleId, DEFAULT_USER_ROLE_ID)
     }
 
     @Test
