@@ -2,7 +2,6 @@ package org.bazar.authorization.adapter.inbound.rest.role
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.serialization.json.Json
 import org.assertj.core.api.Assertions.assertThat
@@ -15,7 +14,6 @@ import org.bazar.authorization.adapter.inbound.rest.dto.response.GetEnrichedRole
 import org.bazar.authorization.adapter.inbound.rest.dto.response.GetRolesResponse
 import org.bazar.authorization.infrastructure.BaseWebTest
 import org.bazar.authorization.infrastructure.enums.TestActions
-import org.bazar.authorization.infrastructure.enums.TestAttributes
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import java.util.*
@@ -115,8 +113,8 @@ class RolesControllerTest : BaseWebTest() {
     }
 
     @Test
-    @DisplayName("Create role, happy path")
-    fun createRole_withAllowedActions_shouldReturnOk() = webTest {
+    @DisplayName("Create role, requester is creator, should return ok")
+    fun creator_createRole_shouldReturnOk() = webTest {
         //given
         val spaceId = randomSpaceId()
         val newRoleName = "TestRole"
@@ -129,20 +127,10 @@ class RolesControllerTest : BaseWebTest() {
 
         initDataHelper.createRolesActions(
             roleId = requesterRoleId,
-            action = TestActions.ROLES_MANAGE
-        )
-
-        initDataHelper.createRolesActions(
-            roleId = requesterRoleId,
-            action = TestActions.ROLES_ASSIGN
-        )
-
-        initDataHelper.createRolesActions(
-            roleId = requesterRoleId,
             action = TestActions.ROLES_READ
         )
 
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = requesterRoleId, isCreator = false)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = requesterRoleId, isCreator = true)
 
         val request = CreateRoleRequest(
             spaceId,
@@ -151,13 +139,7 @@ class RolesControllerTest : BaseWebTest() {
             listOf(
                 SimpleActionDto(initDataHelper.getActionIdByTestAction(TestActions.CHAT_MESSAGES_READ)),
                 SimpleActionDto(
-                    initDataHelper.getActionIdByTestAction(TestActions.ROLES_MANAGE)
-                ),
-                SimpleActionDto(
                     initDataHelper.getActionIdByTestAction(TestActions.ROLES_READ)
-                ),
-                SimpleActionDto(
-                    initDataHelper.getActionIdByTestAction(TestActions.ROLES_ASSIGN)
                 ),
             )
         )
@@ -175,7 +157,7 @@ class RolesControllerTest : BaseWebTest() {
 
         assertThat(responseBody.spaceId).isEqualTo(spaceId)
         assertThat(responseBody.name).isEqualTo(newRoleName)
-        assertThat(responseBody.actions).hasSize(4)
+        assertThat(responseBody.actions).hasSize(2)
 
         assertThat(responseBody.actions)
             .extracting(
@@ -183,13 +165,7 @@ class RolesControllerTest : BaseWebTest() {
                 { it.code },
             ).containsExactlyInAnyOrder(
                 tuple(
-                    TestActions.ROLES_MANAGE.resource, TestActions.ROLES_MANAGE.actionCode
-                ),
-                tuple(
                     TestActions.ROLES_READ.resource, TestActions.ROLES_READ.actionCode
-                ),
-                tuple(
-                    TestActions.ROLES_ASSIGN.resource, TestActions.ROLES_ASSIGN.actionCode
                 ),
                 tuple(
                     TestActions.CHAT_MESSAGES_READ.resource,
@@ -197,6 +173,48 @@ class RolesControllerTest : BaseWebTest() {
                 )
             )
 
+    }
+
+    @Test
+    @DisplayName("Create role, requester is not a creator but has roles:MANAGE in role, should return 403")
+    fun nonCreator_withRolesManageInRole_createRole_shouldReturnForbidden() = webTest {
+        //given
+        val spaceId = randomSpaceId()
+        val newRoleName = "TestRole"
+        val requesterRoleId = initDataHelper.createRole(spaceId)
+
+        initDataHelper.createRolesActions(
+            roleId = requesterRoleId,
+            action = TestActions.ROLES_MANAGE
+        )
+        initDataHelper.createRolesActions(
+            roleId = requesterRoleId,
+            action = TestActions.ROLES_ASSIGN
+        )
+        initDataHelper.createRolesActions(
+            roleId = requesterRoleId,
+            action = TestActions.ROLES_READ
+        )
+
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = requesterRoleId, isCreator = false)
+
+        val request = CreateRoleRequest(
+            spaceId,
+            newRoleName,
+            true,
+            listOf(
+                SimpleActionDto(initDataHelper.getActionIdByTestAction(TestActions.ROLES_MANAGE))
+            )
+        )
+
+        //when
+        val response = client.post("/api/v1/roles") {
+            header(HttpHeaders.Authorization, "Bearer ${authenticatedBearerToken()}")
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(request)
+        }
+        //then
+        assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 
 
@@ -234,7 +252,7 @@ class RolesControllerTest : BaseWebTest() {
     }
 
     @Test
-    @DisplayName("Create role: unsatisfied dependency on action, should return 422")
+    @DisplayName("Create role: unsatisfied dependency on action, requester is creator, should return 422")
     fun createRole_unsatisfiedActionDependency_shouldReturnForbidden() = webTest {
         val spaceId = randomSpaceId()
 
@@ -252,7 +270,7 @@ class RolesControllerTest : BaseWebTest() {
             action = TestActions.CHAT_MESSAGES_READ
         )
 
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = requesterRoleId, isCreator = false)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = requesterRoleId, isCreator = true)
 
         val request = CreateRoleRequest(
             spaceId,
@@ -275,7 +293,7 @@ class RolesControllerTest : BaseWebTest() {
     }
 
     @Test
-    @DisplayName("Edit role, happy path")
+    @DisplayName("Edit role, requester is creator, should return ok")
     fun putRoles_roleExistUserHasRights_shouldReturnOk() = webTest {
         //given
         val spaceId = randomSpaceId()
@@ -302,7 +320,7 @@ class RolesControllerTest : BaseWebTest() {
             createRolesActions(roleAssignedToUser, TestActions.CHAT_MESSAGES_READ)
             createRolesActions(roleAssignedToUser, TestActions.STORAGE_NODE_DOWNLOAD)
         }
-        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = roleAssignedToUser, isCreator = false)
+        initDataHelper.createSpaceUser(spaceId, authenticatedUserId, roleId = roleAssignedToUser, isCreator = true)
 
         val request = PutRoleRequest(
             "TestRole",
@@ -310,7 +328,6 @@ class RolesControllerTest : BaseWebTest() {
             listOf(
                 SimpleActionDto(initDataHelper.getActionIdByTestAction(TestActions.STORAGE_NODE_DOWNLOAD)),
                 SimpleActionDto(initDataHelper.getActionIdByTestAction(TestActions.STORAGE_NODE_READ)),
-                SimpleActionDto(initDataHelper.getActionIdByTestAction(TestActions.ROLES_MANAGE)),
                 SimpleActionDto(initDataHelper.getActionIdByTestAction(TestActions.ROLES_READ)),
             )
         )
@@ -329,7 +346,7 @@ class RolesControllerTest : BaseWebTest() {
 
         assertThat(responseDto)
             .isNotNull
-        assertThat(responseDto.actions).hasSize(4)
+        assertThat(responseDto.actions).hasSize(3)
         assertThat(responseDto.name).isEqualTo("TestRole")
         assertThat(responseDto.isVisible).isEqualTo(true)
     }

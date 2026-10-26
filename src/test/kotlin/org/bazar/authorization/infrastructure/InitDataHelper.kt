@@ -1,5 +1,6 @@
 package org.bazar.authorization.infrastructure
 
+import org.bazar.authorization.adapter.outbound.action.persistence.Actions
 import org.bazar.authorization.adapter.outbound.role.persistence.RolesActionsRepositoryAdapter
 import org.bazar.authorization.adapter.outbound.spaceuser.persistence.SpaceUsers
 import org.bazar.authorization.adapter.outbound.spaceuser.persistence.toSpaceUser
@@ -11,6 +12,7 @@ import org.bazar.authorization.domain.role.RoleActionMapping
 import org.bazar.authorization.domain.spaceuser.SpaceUser
 import org.bazar.authorization.infrastructure.enums.TestActions
 import org.bazar.authorization.infrastructure.enums.TestAttributes
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
@@ -33,9 +35,7 @@ class InitDataHelper(
         roleId: Long,
         action: TestActions,
     ) = transaction {
-        val actionId = actionRepositoryPort.findAll()
-            .firstOrNull { it.code == action.actionCode && it.resource == action.resource }?.id ?:
-            throw IllegalArgumentException("No such action in DB actionCode: ${action.actionCode}, actionResource: ${action.resource}")
+        val actionId = findActionIdRaw(action.actionCode, action.resource)
 
         rolesActionsRepositoryAdapter.save(
             RoleActionMapping(
@@ -62,8 +62,14 @@ class InitDataHelper(
     }
 
     suspend fun getActionIdByTestAction(action: TestActions): Int = suspendTransaction {
-        actionRepositoryPort.findAll()
-            .firstOrNull { it.code == action.actionCode && it.resource == action.resource }?.id
-            ?: throw IllegalArgumentException("No such action, actionCode: ${action.actionCode}, actionResource: ${action.resource}")
+        findActionIdRaw(action.actionCode, action.resource)
+    }
+
+    private fun findActionIdRaw(code: String, resource: String): Int {
+        val id = Actions.selectAll()
+            .where { (Actions.code eq code) and (Actions.resource eq resource) }
+            .map { it[Actions.id].value }
+            .firstOrNull()
+        return id ?: throw IllegalArgumentException("No such action in DB actionCode: $code, actionResource: $resource")
     }
 }

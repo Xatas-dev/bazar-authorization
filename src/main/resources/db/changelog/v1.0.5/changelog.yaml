@@ -1,0 +1,4 @@
+databaseChangeLog:
+  - include:
+      file: 20261026-00-0-add-soft-delete-flag-to-action.sql
+      relativeToChangelogFile: true
