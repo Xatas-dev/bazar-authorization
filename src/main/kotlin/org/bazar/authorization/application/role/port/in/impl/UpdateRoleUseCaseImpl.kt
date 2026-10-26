@@ -9,6 +9,7 @@ import org.bazar.authorization.application.role.port.out.RoleRepositoryPort
 import org.bazar.authorization.application.role.port.out.RolesActionsRepositoryPort
 import org.bazar.authorization.application.shared.buildAuthorizationCheck
 import org.bazar.authorization.application.shared.port.out.Authorizer
+import org.bazar.authorization.domain.action.Action
 import org.bazar.authorization.domain.authz.AuthorizationAction
 import org.bazar.authorization.domain.authz.PrincipalAttributes
 import org.bazar.authorization.domain.exception.RoleNotFoundException
@@ -25,15 +26,22 @@ class UpdateRoleUseCaseImpl(
 
     override suspend fun execute(command: UpdateRoleCommand): EnrichedRole {
 
-        val (actionsFromDb, existingActionIds) = suspendTransaction {
-            val actions = actionRepositoryPort.findByIds(command.actions.map { it.actionId })
-            val existingIds = rolesActionsRepositoryPort.findAllByRoleId(command.roleId)
+        val (role, allActions, existingActionIds) = suspendTransaction {
+            val r = roleRepositoryPort.findById(command.roleId)
+                ?: throw RoleNotFoundException(command.roleId)
+            val all = actionRepositoryPort.findAll()
+            val existing = rolesActionsRepositoryPort
+                .findAllByRoleId(command.roleId)
                 .map { it.actionId }
                 .toSet()
-            actions to existingIds
+            Triple(r, all, existing)
         }
 
-        val newlyGrantedActions = actionsFromDb.filter { it.id !in existingActionIds }
+        val requestedActionIds = command.actions.map { it.actionId }.toSet()
+        val requestedActions = allActions.filter { it.id in requestedActionIds }
+        val existingActions = allActions.filter { it.id in existingActionIds }
+
+        val actionDiff = computeActionDiff(requestedActions, existingActions)
 
         authorizer.authorizeOrThrow(
             buildAuthorizationCheck(
@@ -42,30 +50,42 @@ class UpdateRoleUseCaseImpl(
                 authorizationConstant = AuthorizationAction.ROLES_MANAGE,
                 resourceId = command.roleId.toString(),
                 principalAttributes = mapOf(
-                    PrincipalAttributes.ACTIONS_TO_GRANT to newlyGrantedActions.map { "${it.resource}:${it.code}" }
-                        .toString()
+                    PrincipalAttributes.ACTIONS_TO_GRANT to toAuthzString(actionDiff)
                 )
             )
         )
 
-        actionDependencyResolver.validateActionsDependency(newlyGrantedActions)
+        actionDependencyResolver.validateActionsDependency(requestedActions)
 
         return suspendTransaction {
-            val roleInDb = roleRepositoryPort.findById(command.roleId)
-                ?: throw RoleNotFoundException(command.roleId)
+            val updatedRole = roleRepositoryPort.update(
+                role.update(command.name, command.isVisible)
+            )
 
-            val updatedRole = roleRepositoryPort.update(roleInDb.update(command.name, command.isVisible))
-
-            val roleActionMappingsToCreate = command.actions.map {
-                RoleActionMapping(
-                    roleId = updatedRole.id!!,
-                    actionId = it.actionId
-                )
+            val mappings = requestedActions.map {
+                RoleActionMapping(roleId = updatedRole.id!!, actionId = it.id)
             }
-            rolesActionsRepositoryPort.deleteAll(listOf(updatedRole.id!!))
-            val createdRoleActionMappings = rolesActionsRepositoryPort.saveAll(roleActionMappingsToCreate)
 
-            EnrichedRole(updatedRole, createdRoleActionMappings, actionsFromDb)
+            rolesActionsRepositoryPort.deleteAll(listOf(updatedRole.id!!))
+            val savedMappings = rolesActionsRepositoryPort.saveAll(mappings)
+
+            EnrichedRole(updatedRole, savedMappings, requestedActions)
         }
     }
+
+    private fun computeActionDiff(
+        requested: List<Action>,
+        existing: List<Action>
+    ): List<Action> {
+        val existingIds = existing.mapTo(HashSet()) { it.id }
+        val requestedIds = requested.mapTo(HashSet()) { it.id }
+
+        val granted = requested.filter { it.id !in existingIds }
+        val revoked = existing.filter { it.id !in requestedIds }
+        return granted + revoked
+    }
+
+    private fun toAuthzString(actions: List<Action>): String =
+        actions.map { "${it.resource}:${it.code}" }.toString()
 }
+
