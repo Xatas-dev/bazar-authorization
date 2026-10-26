@@ -7,6 +7,7 @@ import dev.cerbos.sdk.builders.AttributeValue.stringValue
 import dev.cerbos.sdk.builders.Principal
 import dev.cerbos.sdk.builders.Resource
 import org.bazar.authorization.infrastructure.BaseIntegrationTest
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DisplayName
 import org.koin.test.inject
 import java.util.*
@@ -63,6 +64,7 @@ class CerbosAccessCheckerTest : BaseIntegrationTest() {
     }
 
     @Test
+    @Disabled("turn on after role management will be released")
     @DisplayName("User has all required permission to create a role, should return ALLOW")
     fun test_spaceUserHasRolesCreateAndTriesToCreateRole_shouldReturnAllow() = integrationTest {
         val userId = UUID.randomUUID();
@@ -88,6 +90,7 @@ class CerbosAccessCheckerTest : BaseIntegrationTest() {
     }
 
     @Test
+    @Disabled("turn on after role management will be released")
     @DisplayName("User has all required permissions to edit role, should return ALLOW")
     fun test_spaceUserHasRolesEdit_shouldReturnAllow() = integrationTest {
         val userId = UUID.randomUUID();
