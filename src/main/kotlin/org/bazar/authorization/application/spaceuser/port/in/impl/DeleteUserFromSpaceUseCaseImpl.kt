@@ -19,6 +19,7 @@ class DeleteUserFromSpaceUseCaseImpl(
             buildAuthorizationCheck(
                 spaceId = command.spaceId,
                 userId = command.requesterId,
+                resourceId = command.userId.toString(),
                 authorizationConstant = AuthorizationAction.SPACE_USER_DELETE,
                 resourceAttributes = mapOf(ResourceAttributes.IS_CREATOR to command.isCreator.toString())
             )
